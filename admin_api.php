@@ -55,6 +55,15 @@ if ($action === 'save_user') {
         echo json_encode(['ok' => false, 'error' => 'New user must have a password']); exit();
     }
 
+    // If admin is changing their OWN password, require current password verification
+    $verifyCurrent = $body['verify_current'] ?? null;
+    if ($verifyCurrent !== null && $oldUsername === $_SESSION['username']) {
+        if (!password_verify($verifyCurrent, $users[$oldUsername]['password'] ?? '')) {
+            echo json_encode(['ok' => false, 'error' => 'Current password is incorrect']);
+            exit();
+        }
+    }
+
     // Validate password if provided
     if ($newPassword) {
         if (strlen($newPassword) < 10) {

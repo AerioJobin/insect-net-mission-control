@@ -1605,7 +1605,6 @@
                                 <div class="user-name"><?= htmlspecialchars($_SESSION['username']) ?></div>
                                 <span class="user-role-badge"><?= htmlspecialchars($_SESSION['role']) ?></span>
                             </div>
-                            <a href="change_password.php" class="logout-btn" style="background:var(--surface2);color:var(--text-dim);border-color:var(--border);">🔑 Password</a>
                             <a href="logout.php" class="logout-btn">🚪 Logout</a>
                         </div>
                     </div>
@@ -1817,7 +1816,6 @@
                                 <div class="user-name"><?= htmlspecialchars($_SESSION['username']) ?></div>
                                 <span class="user-role-badge"><?= htmlspecialchars($_SESSION['role']) ?></span>
                             </div>
-                            <a href="change_password.php" class="logout-btn" style="background:var(--surface2);color:var(--text-dim);border-color:var(--border);">🔑 Password</a>
                             <a href="logout.php" class="logout-btn">🚪 Logout</a>
                         </div>
                     </div>
@@ -2366,6 +2364,25 @@
             <button class="admin-panel-close" onclick="closeAdminPanel()">&#x2715;</button>
         </div>
         <div class="admin-panel-body">
+            <p class="admin-section-title">My Profile</p>
+            <div class="user-card" id="myProfileCard">
+                <div class="admin-field">
+                    <label class="admin-label">Current Password <span style="font-weight:400;opacity:0.6;text-transform:none;letter-spacing:0">(required to change)</span></label>
+                    <input class="admin-input" type="password" id="profileOldPw" placeholder="Enter current password" autocomplete="current-password">
+                </div>
+                <div class="admin-field">
+                    <label class="admin-label">New Password</label>
+                    <input class="admin-input" type="password" id="profileNewPw" placeholder="At least 10 characters" autocomplete="new-password" oninput="profileStrength(this.value)">
+                    <div style="height:4px;background:var(--border);border-radius:99px;margin-top:6px;"><div id="profileStrBar" style="height:100%;border-radius:99px;width:0;transition:width 0.3s,background 0.3s;"></div></div>
+                </div>
+                <div class="admin-field">
+                    <label class="admin-label">Confirm New Password</label>
+                    <input class="admin-input" type="password" id="profileConfirmPw" placeholder="Re-enter new password" autocomplete="new-password">
+                </div>
+                <div class="user-card-actions">
+                    <button class="btn-save-user" onclick="changeMyPassword()">&#128274; Update My Password</button>
+                </div>
+            </div>
             <p class="admin-section-title">Accounts</p>
             <div id="adminUserList"></div>
             <button class="btn-add-user" onclick="addUserCard()">+ Add New User</button>
@@ -2393,6 +2410,24 @@
         "<select class='admin-select'><option value='user' "+(role==="user"?"selected":"")+" >user</option><option value='admin' "+(role==="admin"?"selected":"")+" >admin</option></select></div>"+
         "<div class='user-card-actions'><button class='btn-save-user' onclick='saveUser(this)'>&#128190; Save Changes</button>"+delBtn+"</div>";
         return card;
+    }
+    function profileStrength(pw){var s=0;if(pw.length>=10)s++;if(pw.length>=16)s++;if(/[A-Z]/.test(pw))s++;if(/[0-9]/.test(pw))s++;if(/[^A-Za-z0-9]/.test(pw))s++;var b=document.getElementById("profileStrBar");var c=["transparent","#ef4444","#f59e0b","#3b82f6","#22c55e","#16a34a"][Math.min(s,5)];var w=["0%","25%","50%","75%","90%","100%"][Math.min(s,5)];b.style.width=w;b.style.background=c;}
+    async function changeMyPassword(){
+        var old=document.getElementById("profileOldPw").value;
+        var np=document.getElementById("profileNewPw").value;
+        var cp=document.getElementById("profileConfirmPw").value;
+        if(!old||!np){showAdminMsg("Fill in current and new password",false);return;}
+        if(np.length<10){showAdminMsg("New password must be at least 10 characters",false);return;}
+        if(np!==cp){showAdminMsg("Passwords do not match",false);return;}
+        var btn=document.querySelector("#myProfileCard .btn-save-user");
+        btn.disabled=true;btn.textContent="Saving...";
+        try{
+            var res=await fetch("admin_api.php",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({action:"save_user",old_username:CURRENT_USER,username:CURRENT_USER,password:np,role:"admin",verify_current:old})});
+            var d=await res.json();
+            if(d.ok){showAdminMsg("Password updated successfully!",true);document.getElementById("profileOldPw").value="";document.getElementById("profileNewPw").value="";document.getElementById("profileConfirmPw").value="";document.getElementById("profileStrBar").style.width="0";}
+            else{showAdminMsg(d.error||"Failed to update password",false);}
+        }catch(e){showAdminMsg("Network error",false);}
+        btn.disabled=false;btn.textContent="\u{1F512} Update My Password";
     }
     function addUserCard(){var list=document.getElementById("adminUserList");var card=makeUserCard("","user",true);list.appendChild(card);card.querySelector(".admin-input").focus();card.scrollIntoView({behavior:"smooth",block:"nearest"});}
     async function saveUser(btn){
