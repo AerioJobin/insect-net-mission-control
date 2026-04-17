@@ -1,6 +1,12 @@
 <?php
 include('config.php');
 
+// Redirect to dashboard if already logged in
+if (isset($_SESSION['username'])) {
+    header('Location: index.php');
+    exit();
+}
+
 $error = '';
 $success = '';
 $logged_out = isset($_GET['logged_out']);

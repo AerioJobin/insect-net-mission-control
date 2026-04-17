@@ -1311,6 +1311,79 @@
                 clip: rect(0, 0, 0, 0);
                 white-space: nowrap;
             }
+            /* ═══ SPECIES SUMMARY ═══ */
+            .species-summary-card {
+                background: var(--surface);
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 20px 24px;
+                margin-bottom: 22px;
+                box-shadow: 0 4px 20px var(--shadow);
+            }
+            .species-summary-header {
+                display: flex; align-items: center; justify-content: space-between;
+                margin-bottom: 16px; flex-wrap: wrap; gap: 10px;
+            }
+            .species-summary-header h4 {
+                font-family: 'Space Mono', monospace; font-size: 0.72em;
+                letter-spacing: 2px; text-transform: uppercase; color: var(--text-dim);
+            }
+            .csv-export-btn {
+                background: linear-gradient(135deg, var(--primary), var(--accent));
+                color: #fff; border: none; border-radius: 99px;
+                padding: 7px 16px; font-size: 0.75em; font-weight: 700;
+                cursor: pointer; letter-spacing: 0.5px; font-family: 'Outfit', sans-serif;
+                transition: all var(--tr); box-shadow: 0 4px 12px rgba(138,34,69,0.3);
+            }
+            .csv-export-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(138,34,69,0.4); }
+            .species-table-wrap { overflow-x: auto; }
+            .species-table {
+                width: 100%; border-collapse: collapse; font-size: 0.83em;
+            }
+            .species-table th {
+                text-align: left; padding: 8px 12px;
+                font-family: 'Space Mono', monospace; font-size: 0.7em;
+                letter-spacing: 1.5px; text-transform: uppercase;
+                color: var(--text-dim); border-bottom: 1px solid var(--border);
+            }
+            .species-table td {
+                padding: 10px 12px; border-bottom: 1px solid var(--border);
+                vertical-align: middle;
+            }
+            .species-table tr:last-child td { border-bottom: none; }
+            .species-table tr:hover td { background: var(--surface2); }
+            .species-table .dim { color: var(--text-dim); font-size: 0.9em; }
+            .sp-count {
+                background: var(--surface2); border: 1px solid var(--border);
+                border-radius: 99px; padding: 2px 10px;
+                font-size: 0.82em; font-weight: 700; color: var(--primary);
+            }
+
+            /* ═══ GALLERY FILTER ═══ */
+            .gallery-filter-row {
+                display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+            }
+            .date-filter-input {
+                background: var(--surface2); border: 1px solid var(--border);
+                border-radius: 8px; padding: 7px 12px; font-size: 0.82em;
+                color: var(--text); font-family: 'Inter', sans-serif;
+                outline: none; transition: border-color var(--tr); width: 200px;
+            }
+            .date-filter-input:focus { border-color: var(--primary); }
+            .date-filter-input::placeholder { color: var(--text-dim); }
+            .filter-clear-btn {
+                background: var(--surface2); border: 1px solid var(--border);
+                border-radius: 8px; padding: 7px 10px; cursor: pointer;
+                color: var(--text-dim); font-size: 0.85em; transition: all var(--tr);
+            }
+            .filter-clear-btn:hover { border-color: var(--primary); color: var(--primary); }
+            .sort-select {
+                background: var(--surface2); border: 1px solid var(--border);
+                border-radius: 8px; padding: 7px 10px; font-size: 0.82em;
+                color: var(--text); font-family: 'Inter', sans-serif;
+                cursor: pointer; outline: none;
+            }
+
             /* ═══ IDENTIFIED BADGE ═══ */
             .identified-badge {
                 position: absolute;
@@ -1794,18 +1867,83 @@
         </div>
         <?php endif; ?>
 
+        <?php
+        // ── Species Summary ──────────────────────────────────────────
+        $speciesSummary = [];
+        $csvRows = [['Image', 'Species', 'Common Name', 'Confidence (%)', 'Date']];
+        foreach ($deviceFiles as $f) {
+            $base     = basename($f);
+            $jsonPath = $upload_dir . pathinfo($base, PATHINFO_FILENAME) . '.json';
+            if (!is_file($jsonPath)) continue;
+            $j = json_decode(file_get_contents($jsonPath), true);
+            if (!$j || empty($j['species'])) continue;
+            $sp   = $j['species'] ?? 'Unknown';
+            $cn   = $j['common_name'] ?? '';
+            $conf = isset($j['confidence']) ? round(floatval($j['confidence']) * 100) : null;
+            $date = date('M j, Y', filemtime($f));
+            if (!isset($speciesSummary[$sp])) {
+                $speciesSummary[$sp] = ['count' => 0, 'common' => $cn, 'maxConf' => 0, 'latest' => ''];
+            }
+            $speciesSummary[$sp]['count']++;
+            if ($conf !== null && $conf > $speciesSummary[$sp]['maxConf']) $speciesSummary[$sp]['maxConf'] = $conf;
+            $speciesSummary[$sp]['latest'] = $date;
+            $csvRows[] = [$base, $sp, $cn, $conf ?? '', $date];
+        }
+        arsort($speciesSummary);
+        ?>
+        <?php if (!empty($speciesSummary)): ?>
+        <div class="species-summary-card">
+            <div class="species-summary-header">
+                <h4>🔬 Species Identified</h4>
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span class="chart-total-badge"><?= count($speciesSummary) ?> species · <?= count($csvRows) - 1 ?> images</span>
+                    <button class="csv-export-btn" onclick="exportCSV()" title="Download as CSV">⬇ Export CSV</button>
+                </div>
+            </div>
+            <div class="species-table-wrap">
+                <table class="species-table">
+                    <thead><tr><th>Species</th><th>Common Name</th><th>Count</th><th>Best Confidence</th><th>Latest</th></tr></thead>
+                    <tbody>
+                    <?php foreach ($speciesSummary as $sp => $info): ?>
+                    <tr>
+                        <td><strong><?= htmlspecialchars($sp) ?></strong></td>
+                        <td class="dim"><?= htmlspecialchars($info['common']) ?: '<em>—</em>' ?></td>
+                        <td><span class="sp-count"><?= $info['count'] ?></span></td>
+                        <td><?= $info['maxConf'] ? $info['maxConf'] . '%' : '—' ?></td>
+                        <td class="dim"><?= htmlspecialchars($info['latest']) ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <script>
+            const CSV_DATA = <?= json_encode($csvRows) ?>;
+            function exportCSV() {
+                const lines = CSV_DATA.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(','));
+                const blob = new Blob([lines.join('\n')], { type: 'text/csv' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'insect_net_<?= addslashes($device) ?>_species_<?= date('Y-m-d') ?>.csv';
+                a.click();
+            }
+            </script>
+        </div>
+        <?php endif; ?>
+
         <div class="gallery-controls">
                     <strong id="galleryCount"></strong>
-                    <form method="get">
-                        <input type="hidden" name="view" value="dashboard">
-                        <input type="hidden" name="device" value="<?= htmlspecialchars($device) ?>">
-                        <select name="sort" onchange="this.form.submit()">
-                            <option value="date" <?= (!isset($_GET['sort']) || $_GET['sort'] === 'date') ? 'selected' : '' ?>>Group by
-                                Date</option>
-                            <option value="latest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'latest') ? 'selected' : '' ?>>Latest
-                                First</option>
-                        </select>
-                    </form>
+                    <div class="gallery-filter-row">
+                        <input type="text" id="dateFilter" placeholder="Filter by date (e.g. Mar 26)" class="date-filter-input" oninput="filterGallery()" autocomplete="off">
+                        <button class="filter-clear-btn" onclick="document.getElementById('dateFilter').value='';filterGallery()" title="Clear filter">✕</button>
+                        <form method="get" style="display:contents;">
+                            <input type="hidden" name="view" value="dashboard">
+                            <input type="hidden" name="device" value="<?= htmlspecialchars($device) ?>">
+                            <select name="sort" onchange="this.form.submit()" class="sort-select">
+                                <option value="date" <?= (!isset($_GET['sort']) || $_GET['sort'] === 'date') ? 'selected' : '' ?>>Group by Date</option>
+                                <option value="latest" <?= (isset($_GET['sort']) && $_GET['sort'] === 'latest') ? 'selected' : '' ?>>Latest First</option>
+                            </select>
+                        </form>
+                    </div>
                 </div>
 
                 <div class="image-gallery" id="imageGallery">
@@ -1840,7 +1978,11 @@
                 // $sortMode, $camId and $deviceFiles are already computed above
                 if ($sortMode === 'latest') {
                     usort($deviceFiles, fn($a, $b) => filemtime($b) - filemtime($a));
-                    $galleryData = [['date' => null, 'files' => array_map(fn($f) => ['src' => $f, 'name' => basename($f)], $deviceFiles)]];
+                    $galleryData = [['date' => null, 'files' => array_map(fn($f) => [
+                        'src'        => $f,
+                        'name'       => basename($f),
+                        'identified' => is_file($upload_dir . pathinfo(basename($f), PATHINFO_FILENAME) . '.json'),
+                    ], $deviceFiles)]];
                 } else {
                     $grouped = [];
                     foreach ($deviceFiles as $f) {
@@ -2094,6 +2236,44 @@
                     if (e.key === 'ArrowLeft') showAt(curIdx - 1);
                     if (e.key === 'Escape') closeLightbox();
                 });
+
+                // ── Touch swipe for mobile ────────────────────────────────
+                let swipeStartX = 0, swipeStartY = 0;
+                lightbox.addEventListener('touchstart', e => {
+                    swipeStartX = e.touches[0].clientX;
+                    swipeStartY = e.touches[0].clientY;
+                }, { passive: true });
+                lightbox.addEventListener('touchend', e => {
+                    const dx = e.changedTouches[0].clientX - swipeStartX;
+                    const dy = Math.abs(e.changedTouches[0].clientY - swipeStartY);
+                    if (Math.abs(dx) < 40 || dy > 60) return; // too small or vertical
+                    if (dx < 0) showAt(curIdx + 1); // swipe left → next
+                    else        showAt(curIdx - 1); // swipe right → prev
+                }, { passive: true });
+
+                // ── Date filter ──────────────────────────────────────────
+                function filterGallery() {
+                    const q = (document.getElementById('dateFilter').value || '').trim().toLowerCase();
+                    let visibleCount = 0;
+                    gallery.querySelectorAll('.image-container').forEach(card => {
+                        const name = (card.dataset.filename || '').toLowerCase();
+                        const heading = card.previousElementSibling;
+                        const headingText = (heading?.classList.contains('date-heading') ? heading.textContent : '').toLowerCase();
+                        const show = !q || headingText.includes(q) || name.includes(q);
+                        card.style.display = show ? '' : 'none';
+                        if (show) visibleCount++;
+                    });
+                    // hide date headings with no visible children
+                    gallery.querySelectorAll('.date-heading').forEach(h => {
+                        let sib = h.nextElementSibling, anyVisible = false;
+                        while (sib && !sib.classList.contains('date-heading')) {
+                            if (sib.style.display !== 'none') anyVisible = true;
+                            sib = sib.nextElementSibling;
+                        }
+                        h.style.display = anyVisible ? '' : 'none';
+                    });
+                    if (galleryCount) galleryCount.textContent = `${visibleCount} image${visibleCount !== 1 ? 's' : ''}${q ? ' matching' : ''}`;
+                }
 
                 // ── Device map + status ───────────────────────────────────────
                 const deviceId = "<?= addslashes(str_replace('device', 'cam', $device)) ?>";
