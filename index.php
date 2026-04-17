@@ -408,6 +408,110 @@
                 transform: translateY(0);
             }
 
+
+            /* ═══ ADMIN PANEL ═══ */
+            .admin-avatar-btn { cursor:pointer; position:relative; }
+            .admin-avatar-btn:hover { opacity:0.85; }
+            .admin-avatar-btn::after {
+                content:'\2699';
+                position:absolute; bottom:-2px; right:-4px;
+                font-size:9px; background:var(--primary); color:#fff;
+                border-radius:50%; width:14px; height:14px; line-height:14px;
+                display:flex; align-items:center; justify-content:center;
+                box-shadow:0 1px 4px rgba(0,0,0,0.3);
+            }
+            .admin-panel-overlay {
+                position:fixed; inset:0; background:rgba(0,0,0,0.55);
+                z-index:1200; display:none; backdrop-filter:blur(3px);
+            }
+            .admin-panel-overlay.open { display:block; }
+            .admin-panel {
+                position:fixed; top:0; right:-500px; bottom:0;
+                width:100%; max-width:460px;
+                background:var(--surface); border-left:1px solid var(--border);
+                z-index:1201; display:flex; flex-direction:column;
+                transition:right 0.35s cubic-bezier(0.25,0.8,0.25,1);
+                box-shadow:-8px 0 40px rgba(0,0,0,0.35);
+            }
+            .admin-panel.open { right:0; }
+            .admin-panel-header {
+                padding:20px 24px; border-bottom:1px solid var(--border);
+                display:flex; align-items:center; justify-content:space-between; flex-shrink:0;
+            }
+            .admin-panel-title {
+                font-family:'Space Mono',monospace; font-size:0.7em;
+                letter-spacing:2px; text-transform:uppercase; color:var(--text-dim); margin-bottom:2px;
+            }
+            .admin-panel-close {
+                background:var(--surface2); border:1px solid var(--border);
+                border-radius:8px; cursor:pointer; width:34px; height:34px;
+                display:flex; align-items:center; justify-content:center;
+                font-size:1.1em; color:var(--text-dim); transition:all var(--tr);
+            }
+            .admin-panel-close:hover { border-color:var(--primary); color:var(--primary); }
+            .admin-panel-body { flex:1; overflow-y:auto; padding:20px 24px; }
+            .admin-section-title {
+                font-family:'Space Mono',monospace; font-size:0.66em;
+                letter-spacing:2px; text-transform:uppercase; color:var(--text-dim);
+                margin:20px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--border);
+            }
+            .admin-section-title:first-child { margin-top:0; }
+            .user-card {
+                background:var(--surface2); border:1px solid var(--border);
+                border-radius:12px; padding:16px; margin-bottom:12px;
+            }
+            .user-card-header {
+                display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;
+            }
+            .user-card-name { font-weight:700; font-size:0.92em; }
+            .user-card-role {
+                font-size:0.7em; padding:2px 10px; border-radius:99px;
+                font-weight:700; letter-spacing:0.5px;
+                background:var(--surface); border:1px solid var(--border); color:var(--text-dim);
+            }
+            .admin-field { margin-bottom:10px; }
+            .admin-label {
+                display:block; font-size:0.66em; font-weight:700;
+                letter-spacing:1.5px; text-transform:uppercase; color:var(--text-dim); margin-bottom:5px;
+            }
+            .admin-input, .admin-select {
+                width:100%; padding:9px 12px;
+                background:var(--surface); border:1px solid var(--border);
+                border-radius:8px; color:var(--text); font-size:0.85em;
+                font-family:'Inter',sans-serif; outline:none; transition:border-color var(--tr);
+            }
+            .admin-input:focus, .admin-select:focus { border-color:var(--primary); }
+            .admin-input::placeholder { color:var(--text-dim); }
+            .user-card-actions { display:flex; gap:8px; margin-top:12px; }
+            .btn-save-user {
+                flex:1; padding:9px; border:none; border-radius:8px;
+                background:linear-gradient(135deg,var(--primary),var(--accent));
+                color:#fff; font-weight:700; font-size:0.82em; cursor:pointer;
+                font-family:'Outfit',sans-serif; letter-spacing:0.5px; transition:all var(--tr);
+            }
+            .btn-save-user:hover { transform:translateY(-1px); }
+            .btn-save-user:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+            .btn-del-user {
+                padding:9px 14px; border:1px solid rgba(239,68,68,0.4);
+                border-radius:8px; background:transparent; color:#ef4444;
+                font-size:0.82em; cursor:pointer; font-weight:700; transition:all var(--tr);
+            }
+            .btn-del-user:hover { background:rgba(239,68,68,0.1); }
+            .btn-add-user {
+                width:100%; padding:11px; border:2px dashed var(--border);
+                border-radius:10px; background:transparent; color:var(--text-dim);
+                cursor:pointer; font-family:'Inter',sans-serif; font-size:0.85em;
+                font-weight:600; transition:all var(--tr); margin-top:4px;
+            }
+            .btn-add-user:hover { border-color:var(--primary); color:var(--primary); }
+            .admin-msg {
+                padding:10px 14px; border-radius:8px; font-size:0.82em;
+                font-weight:600; margin-top:12px; display:none;
+            }
+            .admin-msg.ok  { background:rgba(74,222,128,0.1); border:1px solid rgba(74,222,128,0.3); color:#4ade80; }
+            .admin-msg.err { background:rgba(239,68,68,0.1);  border:1px solid rgba(239,68,68,0.3);  color:#ef4444; }
+            @media(max-width:480px){ .admin-panel{ max-width:100%; } }
+
             /* ═══ USER MENU wrapper ═══ */
             .user-menu {
                 display: flex;
@@ -1600,12 +1704,20 @@
                             </div>
                         </div>
                         <div class="user-menu">
+                            <?php if ($_SESSION['role'] === 'admin'): ?>
+                            <div class="user-chip admin-avatar-btn" onclick="openAdminPanel()" title="Admin Settings">
+                                <div class="user-avatar"><?= strtoupper(substr($_SESSION['username'], 0, 1)) ?></div>
+                                <div class="user-name"><?= htmlspecialchars($_SESSION['username']) ?></div>
+                                <span class="user-role-badge"><?= htmlspecialchars($_SESSION['role']) ?></span>
+                            </div>
+                            <?php else: ?>
                             <div class="user-chip">
                                 <div class="user-avatar"><?= strtoupper(substr($_SESSION['username'], 0, 1)) ?></div>
                                 <div class="user-name"><?= htmlspecialchars($_SESSION['username']) ?></div>
                                 <span class="user-role-badge"><?= htmlspecialchars($_SESSION['role']) ?></span>
                             </div>
-                            <a href="logout.php" class="logout-btn">🚪 Logout</a>
+                            <?php endif; ?>
+                             <a href="logout.php" class="logout-btn">🚪 Logout</a>
                         </div>
                     </div>
                 </div>
@@ -1811,12 +1923,20 @@
                             <p class="device-meta" id="deviceBattery">Battery: --</p>
                         </div>
                         <div class="user-menu">
+                            <?php if ($_SESSION['role'] === 'admin'): ?>
+                            <div class="user-chip admin-avatar-btn" onclick="openAdminPanel()" title="Admin Settings">
+                                <div class="user-avatar"><?= strtoupper(substr($_SESSION['username'], 0, 1)) ?></div>
+                                <div class="user-name"><?= htmlspecialchars($_SESSION['username']) ?></div>
+                                <span class="user-role-badge"><?= htmlspecialchars($_SESSION['role']) ?></span>
+                            </div>
+                            <?php else: ?>
                             <div class="user-chip">
                                 <div class="user-avatar"><?= strtoupper(substr($_SESSION['username'], 0, 1)) ?></div>
                                 <div class="user-name"><?= htmlspecialchars($_SESSION['username']) ?></div>
                                 <span class="user-role-badge"><?= htmlspecialchars($_SESSION['role']) ?></span>
                             </div>
-                            <a href="logout.php" class="logout-btn">🚪 Logout</a>
+                            <?php endif; ?>
+                             <a href="logout.php" class="logout-btn">🚪 Logout</a>
                         </div>
                     </div>
                 </div>
