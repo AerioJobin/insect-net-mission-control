@@ -1,0 +1,462 @@
+<?php
+
+
+
+$imageFile = basename((string)($_GET['image'] ?? ''));
+$device    = $_GET['device'] ?? 'device1';
+$imagePath = 'uploads/' . $imageFile;
+$jsonPath  = 'uploads/' . pathinfo($imageFile, PATHINFO_FILENAME) . '.json';
+
+if (!$imageFile || !is_file($imagePath)) {
+    header('Location: index.php?view=dashboard');
+    exit;
+}
+
+// Load cached result if it exists
+$cached = null;
+if (is_file($jsonPath)) {
+    $raw = file_get_contents($jsonPath);
+    $decoded = json_decode($raw, true);
+    if (json_last_error() === JSON_ERROR_NONE && isset($decoded['species'])) {
+        $cached = $decoded;
+    }
+}
+
+$captureTime = date('F j, Y — H:i', filemtime($imagePath));
+$backUrl = 'index.php?view=dashboard&device=' . urlencode($device);
+?>
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= htmlspecialchars($imageFile) ?> — INSECT NET</title>
+    <meta name="description" content="AI Identification result for <?= htmlspecialchars($imageFile) ?>">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #8A2245; --secondary: #6b1a36; --accent: #c44569;
+            --bg: #FDFBF7; --surface: #FFFFFF; --surface2: #F7F3F5;
+            --border: #dee2e6; --text: #4E4247; --text-dim: #6c757d;
+            --shadow: rgba(0,0,0,0.07); --shadow-md: rgba(0,0,0,0.13); --shadow-glow: rgba(138, 34, 69, 0.25);
+            --radius: 16px; --tr: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        [data-theme="dark"] {
+            --bg: #09090b; --surface: #141417; --surface2: #1e1e24;
+            --border: #2a2a32; --text: #ededf0; --text-dim: #a1a1aa;
+            --shadow: rgba(0,0,0,0.45); --shadow-md: rgba(0,0,0,0.65); --shadow-glow: rgba(196, 69, 105, 0.35);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg); color: var(--text);
+            min-height: 100vh; padding: 32px 24px;
+            transition: background var(--tr), color var(--tr);
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 32px 32px;
+        }
+        .page { max-width: 1100px; margin: 0 auto; position: relative; z-index: 1; }
+
+        /* Header */
+        .top-bar {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 32px; gap: 16px; flex-wrap: wrap;
+            background: var(--surface); padding: 16px 20px; border-radius: var(--radius);
+            border: 1px solid var(--border); box-shadow: 0 4px 24px var(--shadow);
+        }
+        .back-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--primary); font-family: 'Outfit', sans-serif;
+            font-size: 0.9em; font-weight: 700; padding: 10px 20px;
+            border-radius: 99px; text-decoration: none; letter-spacing: 0.5px;
+            transition: all var(--tr); box-shadow: 0 2px 8px var(--shadow);
+        }
+        .back-btn:hover { background: var(--primary); color: #fff; border-color: var(--primary); transform: translateY(-2px); }
+        .page-title {
+            font-family: 'Outfit', sans-serif; font-size: clamp(1em, 2vw, 1.2em); font-weight: 700;
+            color: var(--text); letter-spacing: 1px; text-transform: uppercase;
+        }
+        .theme-toggle {
+            background: var(--surface2); border: 1px solid var(--border);
+            border-radius: 50%; width: 44px; height: 44px; cursor: pointer;
+            font-size: 1.2em; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 8px var(--shadow); transition: all var(--tr);
+        }
+        .theme-toggle:hover { transform: rotate(15deg) scale(1.1); background: var(--border); }
+
+        /* Main Layout */
+        .detail-layout {
+            display: grid; grid-template-columns: 1.15fr 420px; gap: 28px; align-items: start;
+        }
+        @media (max-width: 900px) { .detail-layout { grid-template-columns: 1fr; } }
+
+        /* Image Panel */
+        .img-panel {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); overflow: hidden;
+            box-shadow: 0 12px 32px var(--shadow-md);
+            display: flex; flex-direction: column;
+        }
+        .img-panel img {
+            width: 100%; display: block; max-height: 70vh; object-fit: contain; background: #000;
+        }
+        .img-meta {
+            padding: 18px 24px; border-top: 1px solid var(--border);
+            display: flex; flex-direction: column; gap: 6px;
+        }
+        .img-filename {
+            font-family: 'Space Mono', monospace; font-size: 0.85em; font-weight: 700;
+            color: var(--text); word-break: break-all;
+        }
+        .img-time { font-size: 0.85em; color: var(--text-dim); }
+        .img-actions { display: flex; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
+        .btn-download {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--surface2); border: 1px solid var(--border);
+            color: var(--text); font-size: 0.85em; font-weight: 600;
+            padding: 8px 18px; border-radius: 99px; text-decoration: none;
+            transition: all var(--tr);
+        }
+        .btn-download:hover { background: #16a34a; color: #fff; border-color: #16a34a; box-shadow: 0 6px 16px rgba(22, 163, 74, 0.3); transform: translateY(-2px); }
+
+        /* AI Panel */
+        .ai-panel { display: flex; flex-direction: column; gap: 20px; }
+        .card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: var(--radius); padding: 26px;
+            box-shadow: 0 8px 24px var(--shadow); position: relative; overflow: hidden;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: linear-gradient(180deg, var(--primary), var(--accent));
+        }
+        .card-title {
+            font-family: 'Outfit', sans-serif; font-size: 0.85em; font-weight: 700;
+            letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; margin-bottom: 20px;
+            display: flex; align-items: center; gap: 12px;
+        }
+        .card-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* Species result */
+        .species-name {
+            font-family: 'Outfit', sans-serif; font-size: clamp(1.4em, 3vw, 1.8em); font-weight: 700;
+            color: var(--primary); letter-spacing: 0.5px; margin-bottom: 6px;
+        }
+        .common-name {
+            font-size: 1.05em; color: var(--text-dim); font-weight: 500; margin-bottom: 24px;
+        }
+
+        /* Confidence bar */
+        .conf-row { margin-bottom: 20px; }
+        .conf-label {
+            display: flex; justify-content: space-between; font-size: 0.85em; font-weight: 700;
+            color: var(--text-dim); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .conf-bar-track {
+            height: 10px; background: var(--surface2); border-radius: 99px; overflow: hidden; box-shadow: inset 0 2px 4px var(--shadow);
+        }
+        .conf-bar-fill {
+            height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--primary), var(--accent));
+            transition: width 1s cubic-bezier(0.34,1.56,0.64,1); position: relative;
+        }
+        .conf-bar-fill::after {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%);
+            animation: shine 2s infinite;
+        }
+        @keyframes shine { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        /* Description */
+        .desc-text { font-size: 0.95em; line-height: 1.8; color: var(--text); font-weight: 400; }
+
+        /* Identify button */
+        .btn-identify {
+            width: 100%; padding: 18px; background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff; border: none; border-radius: var(--radius);
+            font-family: 'Outfit', sans-serif; font-size: 1.05em; font-weight: 700; letter-spacing: 1.5px;
+            cursor: pointer; box-shadow: 0 8px 24px var(--shadow-glow); transition: all var(--tr); text-transform: uppercase;
+        }
+        .btn-identify:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 12px 32px var(--shadow-glow); }
+        .btn-identify:disabled { opacity: 0.7; cursor: not-allowed; transform: none; filter: grayscale(50%); }
+
+        /* Status badges */
+        .status-tag {
+            display: inline-block; font-size: 0.75em; font-weight: 700;
+            padding: 4px 12px; border-radius: 20px; letter-spacing: 1px; text-transform: uppercase;
+        }
+        .status-cached { background: #dcfce7; color: #16a34a; }
+        .status-fresh  { background: #e0f2fe; color: #0369a1; box-shadow: 0 0 12px rgba(3, 105, 161, 0.3); }
+        [data-theme="dark"] .status-cached { background: #052e16; color: #4ade80; }
+        [data-theme="dark"] .status-fresh  { background: #0c1a2e; color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.2); }
+
+        /* Error */
+        .error-box {
+            background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 20px;
+            color: #991b1b; font-size: 0.9em; line-height: 1.6; display: flex; flex-direction: column; gap: 8px;
+        }
+        [data-theme="dark"] .error-box { background: #1f0808; border-color: #7f1d1d; color: #f87171; }
+
+        /* Toasts */
+        #toast-container {
+            position: fixed; top: 24px; right: 24px; z-index: 9999;
+            display: flex; flex-direction: column; gap: 12px; pointer-events: none;
+        }
+        .toast {
+            background: var(--surface); color: var(--text); padding: 14px 20px; border-radius: 12px;
+            font-size: 0.9em; font-weight: 600; display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2); animation: toastIn 0.4s cubic-bezier(0.34,1.56,0.64,1) forwards;
+            pointer-events: all; max-width: 320px; border: 1px solid var(--border); border-left: 4px solid var(--primary);
+        }
+        .toast.success { border-left-color: #16a34a; }
+        .toast.error { border-left-color: #ef4444; }
+        .toast.leaving { animation: toastOut 0.3s ease forwards; }
+        @keyframes toastIn { from { opacity: 0; transform: translateX(100%) scale(0.9); } to { opacity: 1; transform: none; } }
+        @keyframes toastOut { from { opacity: 1; transform: none; } to { opacity: 0; transform: translateX(100%); } }
+
+        /* Full Screen Loading Overlay */
+        #loadingOverlay {
+            position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+            z-index: 9000; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.4s ease;
+        }
+        #loadingOverlay.active { opacity: 1; pointer-events: all; }
+        .loading-content {
+            background: var(--surface); padding: 40px 60px; border-radius: 24px;
+            text-align: center; border: 1px solid var(--border); box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            transform: translateY(20px); transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        #loadingOverlay.active .loading-content { transform: translateY(0); }
+        .loader-ring {
+            width: 64px; height: 64px; border: 4px solid var(--surface2);
+            border-top-color: var(--primary); border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 24px auto;
+        }
+        .loading-title { font-family: 'Outfit', sans-serif; font-size: 1.4em; font-weight: 700; color: var(--text); margin-bottom: 8px; letter-spacing: 1px; }
+        .loading-sub { font-size: 0.95em; color: var(--text-dim); }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <!-- Toast notifications -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Full Screen Loading Overlay -->
+    <div id="loadingOverlay" aria-hidden="true">
+        <div class="loading-content">
+            <div class="loader-ring"></div>
+            <div class="loading-title">Analyzing Specimen</div>
+            <div class="loading-sub">Gemini 2.5 Flash is processing the image...</div>
+        </div>
+    </div>
+
+    <div class="page">
+        <div class="top-bar">
+            <a href="<?= htmlspecialchars($backUrl) ?>" class="back-btn">← Back to Gallery</a>
+            <span class="page-title">🔬 Species Identification</span>
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
+        </div>
+
+        <div class="detail-layout">
+            <!-- Left: Image -->
+            <div class="img-panel">
+                <img src="<?= htmlspecialchars($imagePath) ?>" alt="<?= htmlspecialchars($imageFile) ?>">
+                <div class="img-meta">
+                    <span class="img-filename">📁 <?= htmlspecialchars($imageFile) ?></span>
+                    <span class="img-time">🕒 Captured: <?= $captureTime ?></span>
+                    <div class="img-actions">
+                        <a href="<?= htmlspecialchars($imagePath) ?>" download="<?= htmlspecialchars($imageFile) ?>" class="btn-download">⬇ Save Image</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: AI Panel -->
+            <div class="ai-panel">
+                <?php if ($cached): ?>
+                <!-- Cached result -->
+                <div class="card">
+                    <div class="card-title">
+                        AI Identification
+                        <span class="status-tag status-cached">✓ Cached</span>
+                    </div>
+                    <div class="species-name"><?= htmlspecialchars($cached['species'] ?? 'Unknown') ?></div>
+                    <div class="common-name"><?= htmlspecialchars($cached['common_name'] ?? '') ?></div>
+                    <?php
+                    $conf = $cached['confidence'] ?? null;
+                    $confPct = $conf ? (int)round((float)$conf * 100) : null;
+                    ?>
+                    <?php if ($confPct): ?>
+                    <div class="conf-row">
+                        <div class="conf-label">
+                            <span>Confidence</span>
+                            <span><?= $confPct ?>%</span>
+                        </div>
+                        <div class="conf-bar-track">
+                            <div class="conf-bar-fill" id="confBar" style="width:0%"></div>
+                        </div>
+                    </div>
+                    <script>setTimeout(() => { const b = document.getElementById('confBar'); if(b) b.style.width = '<?= $confPct ?>%'; }, 100);</script>
+                    <?php endif; ?>
+                </div>
+
+                <?php if (!empty($cached['description'])): ?>
+                <div class="card">
+                    <div class="card-title">Description</div>
+                    <div class="desc-text"><?= htmlspecialchars($cached['description']) ?></div>
+                </div>
+                <?php endif; ?>
+
+                <button class="btn-identify" id="rerunBtn" onclick="runIdentify(true)">
+                    🔄 Re-run Analysis
+                </button>
+
+                <?php else: ?>
+                <!-- No result yet -->
+                <div class="card">
+                    <div class="card-title">AI Identification</div>
+                    <p style="color:var(--text-dim);font-size:0.95em;line-height:1.7;">
+                        No analysis yet. Click below to identify the insects in this trap image using Gemini AI.
+                    </p>
+                </div>
+                <button class="btn-identify" id="rerunBtn" onclick="runIdentify(false)">
+                    ✨ Identify Species
+                </button>
+                <?php endif; ?>
+
+                <!-- Result injected here by JS -->
+                <div id="aiResultArea"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme
+        (function() {
+            const saved = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', saved);
+            const btn = document.getElementById('themeToggle');
+            if (btn) btn.innerHTML = saved === 'dark' ? '☀️' : '🌙';
+            
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    const cur = document.documentElement.getAttribute('data-theme');
+                    const next = cur === 'dark' ? 'light' : 'dark';
+                    document.documentElement.setAttribute('data-theme', next);
+                    localStorage.setItem('theme', next);
+                    btn.innerHTML = next === 'dark' ? '☀️' : '🌙';
+                });
+            }
+        })();
+
+        // Toasts
+        function showToast(msg, type) {
+            const tc = document.getElementById('toast-container');
+            const t = document.createElement('div');
+            t.className = 'toast ' + (type === 'error' ? 'error' : 'success');
+            t.innerHTML = (type === 'error' ? '⚠ ' : '✓ ') + escapeHtml(msg);
+            tc.appendChild(t);
+            setTimeout(() => { t.classList.add('leaving'); setTimeout(() => t.remove(), 320); }, 4000);
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+        }
+
+        function runIdentify(isRerun) {
+            const btn = document.getElementById('rerunBtn');
+            const area = document.getElementById('aiResultArea');
+            const overlay = document.getElementById('loadingOverlay');
+            
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner"></span> Analyzing…';
+            }
+            
+            // Show global loading overlay
+            overlay.classList.add('active');
+            overlay.setAttribute('aria-hidden', 'false');
+            
+            // Show shimmering skeleton loader below button
+            area.innerHTML = `
+                <div class="card" style="opacity: 0.7">
+                    <div class="skeleton skel-title"></div>
+                    <div class="skeleton skel-text"></div>
+                    <div class="skeleton skel-text med"></div>
+                    <div class="skeleton skel-text short" style="margin-bottom:24px;"></div>
+                    <div class="skeleton" style="height:10px; width:100%; border-radius:99px;"></div>
+                </div>
+            `;
+
+            fetch('classify.php', {
+                method: 'POST',
+                body: new URLSearchParams({ image: '<?= addslashes($imageFile) ?>' })
+            })
+            .then(async r => {
+                const txt = await r.text();
+                try {
+                    const parsed = JSON.parse(txt);
+                    // Check logic based on status
+                    if (!r.ok && !parsed.error) parsed.error = `HTTP Error ${r.status}`;
+                    return parsed;
+                } catch(e) {
+                    return { error: 'Non-JSON response', details: txt };
+                }
+            })
+            .then(data => {
+                // Hide overlay
+                overlay.classList.remove('active');
+                overlay.setAttribute('aria-hidden', 'true');
+                
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = isRerun ? '🔄 Re-run Analysis' : '✨ Identify Species';
+                }
+
+                if (data?.error) {
+                    const det = typeof data.details === 'object' ? JSON.stringify(data.details, null, 2) : String(data.details || '');
+                    area.innerHTML = `<div class="error-box"><strong>⚠ ${escapeHtml(data.error)}</strong>${det ? '<br><br><code style="font-size:0.85em;white-space:pre-wrap;">' + escapeHtml(det) + '</code>' : ''}</div>`;
+                    showToast('Analysis failed', 'error');
+                    return;
+                }
+
+                showToast('Species identified successfully!', 'success');
+
+                const species  = data.species ?? 'Unknown';
+                const common   = data.common_name ?? '';
+                const confRaw  = data.confidence ?? null;
+                const confPct  = confRaw ? Math.round(parseFloat(confRaw) * 100) : null;
+                const desc     = data.description ?? '';
+
+                area.innerHTML = `
+                    <div class="card">
+                        <div class="card-title">AI Identification <span class="status-tag status-fresh">✨ Fresh</span></div>
+                        <div class="species-name">${escapeHtml(species)}</div>
+                        <div class="common-name">${escapeHtml(common)}</div>
+                        ${confPct ? `
+                        <div class="conf-row">
+                            <div class="conf-label"><span>Confidence</span><span>${confPct}%</span></div>
+                            <div class="conf-bar-track"><div class="conf-bar-fill" id="newConfBar" style="width:0%"></div></div>
+                        </div>` : ''}
+                    </div>
+                    ${desc ? `<div class="card"><div class="card-title">Description</div><div class="desc-text">${escapeHtml(desc)}</div></div>` : ''}
+                `;
+                if (confPct) setTimeout(() => { const b = document.getElementById('newConfBar'); if(b) b.style.width = confPct + '%'; }, 100);
+            })
+            .catch(err => {
+                // Hide overlay
+                overlay.classList.remove('active');
+                overlay.setAttribute('aria-hidden', 'true');
+                
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = isRerun ? '🔄 Re-run Analysis' : '✨ Identify Species';
+                }
+                area.innerHTML = `<div class="error-box"><strong>⚠ Network error</strong><br>${escapeHtml(err.message)}</div>`;
+                showToast('Network error', 'error');
+                console.error(err);
+            });
+        }
+    </script>
+</body>
+</html>

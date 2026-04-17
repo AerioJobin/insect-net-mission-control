@@ -1,0 +1,6 @@
+.env.local.php
+uploads/
+.antigravity/
+deploy_fix.sh
+deploy_ui_fix.sh
+*.bak.*
