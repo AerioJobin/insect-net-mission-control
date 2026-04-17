@@ -437,6 +437,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             margin-bottom: 4px;
             font-weight: 700;
         }
+
+        /* ── Footer ── */
+        .login-footer {
+            position: fixed;
+            bottom: 0; left: 0; right: 0;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            font-size: 0.72em;
+            color: var(--text-dim);
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            letter-spacing: 0.3px;
+            z-index: 10;
+        }
+        .footer-sep {
+            opacity: 0.35;
+            font-size: 1.1em;
+        }
+        /* Give body padding so card doesn't hide behind footer */
+        body { padding-bottom: 52px; }
     </style>
 </head>
 <body>
@@ -566,5 +590,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Auto-focus first field
         document.getElementById('username').focus();
     </script>
+
+    <footer class="login-footer">
+        <span>© <?= date('Y') ?> NeuRonICS Lab, Indian Institute of Science, Bangalore</span>
+        <span class="footer-sep">·</span>
+        <span>INSECT NET Mission Control</span>
+        <span class="footer-sep">·</span>
+        <span>v2.0</span>
+    </footer>
+
 </body>
 </html>
