@@ -38,6 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Insect NET — Login</title>
     <meta name="description" content="INMT Mission Control Dashboard — NeuRonICS Lab, IISc Bangalore">
+    <link rel="icon" type="image/png" href="neuronics_logo.png">
+    <link rel="shortcut icon" type="image/png" href="neuronics_logo.png">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         /* ═══ DESIGN TOKENS ═══ */

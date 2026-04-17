@@ -51,7 +51,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Insect NET — Mission Control</title>
         <meta name="description" content="INMT Mission Control Dashboard — NeuRonICS Lab, IISc Bangalore">
-        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦟</text></svg>">
+        <link rel="icon" type="image/png" href="neuronics_logo.png">
+        <link rel="shortcut icon" type="image/png" href="neuronics_logo.png">
         <link
             href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700&display=swap"
             rel="stylesheet">
