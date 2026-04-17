@@ -118,22 +118,22 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 999px;
-            padding: 10px 22px;
-            margin-bottom: 40px;
+            padding: 16px 36px;
+            margin-bottom: 44px;
             box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(196,69,105,0.1);
             animation: fadeUp 0.8s 0.05s both;
         }
         .logo-pill img {
-            height: 44px;
+            height: 80px;
             width: auto;
             object-fit: contain;
             filter: none;
         }
         .logo-sep {
             width: 1px;
-            height: 36px;
+            height: 64px;
             background: var(--border);
-            margin: 0 18px;
+            margin: 0 28px;
             flex-shrink: 0;
         }
 
@@ -260,7 +260,9 @@
 
         /* Responsive */
         @media (max-width: 480px) {
-            .logo-pill img { height: 34px; }
+            .logo-pill img { height: 56px; }
+            .logo-sep { height: 44px; margin: 0 18px; }
+            .logo-pill { padding: 12px 24px; }
             .cta-btn { padding: 16px 36px; font-size: 0.95em; }
         }
     </style>
