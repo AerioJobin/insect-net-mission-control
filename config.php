@@ -25,18 +25,9 @@ if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > 
 // Update last activity time
 $_SESSION['last_activity'] = time();
 
-// ═══ USER DATABASE WITH HASHED PASSWORDS ═══
-// Credentials: admin / iisc_admin_2026  |  researcher / insect_user_2026
-$users = [
-    'admin' => [
-        'password' => '$2y$10$nUA.EpLb4PNF7J2ZA.l5t.s52/ErYWhSYlUdZMLarfRG6UhzV9Nca', // VERIFIED: iisc_admin_2026
-        'role' => 'admin'
-    ],
-    'researcher' => [
-        'password' => '$2y$10$OwVqklqOHVbN9V0NQLDUCOxPpdZ8XkrUW3sJ57c/8ar9PESP5098i', // VERIFIED: insect_user_2026
-        'role' => 'user'
-    ]
-];
+// ═══ USER DATABASE (loaded from users.json for runtime editability) ═══
+$usersFile = __DIR__ . '/users.json';
+$users = file_exists($usersFile) ? (json_decode(file_get_contents($usersFile), true) ?? []) : [];
 
 // ═══ CSRF TOKEN GENERATOR ═══
 function generateCSRFToken() {

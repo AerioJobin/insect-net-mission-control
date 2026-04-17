@@ -1,1 +1,11 @@
 ErrorDocument 404 /404.html
+
+# Protect sensitive data files from direct browser access
+<Files "users.json">
+    Order Allow,Deny
+    Deny from all
+</Files>
+<Files "admin_api.php">
+    Order Allow,Deny
+    Allow from all
+</Files>
