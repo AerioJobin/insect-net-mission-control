@@ -1358,6 +1358,18 @@
                 border-radius: 99px; padding: 2px 10px;
                 font-size: 0.82em; font-weight: 700; color: var(--primary);
             }
+            .conf-bar-wrap {
+                display: flex; align-items: center; gap: 8px; min-width: 120px;
+            }
+            .conf-bar {
+                height: 6px; border-radius: 99px; flex-shrink: 0;
+                background: linear-gradient(90deg, var(--primary), var(--accent));
+                transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1);
+                max-width: 80px;
+            }
+            .conf-label {
+                font-size: 0.8em; font-weight: 700; color: var(--text); white-space: nowrap;
+            }
 
             /* ═══ GALLERY FILTER ═══ */
             .gallery-filter-row {
@@ -1593,6 +1605,7 @@
                                 <div class="user-name"><?= htmlspecialchars($_SESSION['username']) ?></div>
                                 <span class="user-role-badge"><?= htmlspecialchars($_SESSION['role']) ?></span>
                             </div>
+                            <a href="change_password.php" class="logout-btn" style="background:var(--surface2);color:var(--text-dim);border-color:var(--border);">🔑 Password</a>
                             <a href="logout.php" class="logout-btn">🚪 Logout</a>
                         </div>
                     </div>
@@ -1804,6 +1817,7 @@
                                 <div class="user-name"><?= htmlspecialchars($_SESSION['username']) ?></div>
                                 <span class="user-role-badge"><?= htmlspecialchars($_SESSION['role']) ?></span>
                             </div>
+                            <a href="change_password.php" class="logout-btn" style="background:var(--surface2);color:var(--text-dim);border-color:var(--border);">🔑 Password</a>
                             <a href="logout.php" class="logout-btn">🚪 Logout</a>
                         </div>
                     </div>
@@ -1909,7 +1923,14 @@
                         <td><strong><?= htmlspecialchars($sp) ?></strong></td>
                         <td class="dim"><?= htmlspecialchars($info['common']) ?: '<em>—</em>' ?></td>
                         <td><span class="sp-count"><?= $info['count'] ?></span></td>
-                        <td><?= $info['maxConf'] ? $info['maxConf'] . '%' : '—' ?></td>
+                        <td>
+                            <?php if ($info['maxConf']): ?>
+                            <div class="conf-bar-wrap">
+                                <div class="conf-bar" style="width:<?= $info['maxConf'] ?>%"></div>
+                                <span class="conf-label"><?= $info['maxConf'] ?>%</span>
+                            </div>
+                            <?php else: ?>—<?php endif; ?>
+                        </td>
                         <td class="dim"><?= htmlspecialchars($info['latest']) ?></td>
                     </tr>
                     <?php endforeach; ?>
