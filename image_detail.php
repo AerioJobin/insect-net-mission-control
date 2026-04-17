@@ -34,6 +34,7 @@ $backUrl     = 'index.php?view=dashboard&device=' . urlencode($device);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($imageFile) ?> — INSECT NET</title>
     <meta name="description" content="AI Identification result for <?= htmlspecialchars($imageFile) ?>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦟</text></svg>">
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -44,8 +45,8 @@ $backUrl     = 'index.php?view=dashboard&device=' . urlencode($device);
             --radius: 16px; --tr: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
         [data-theme="dark"] {
-            --bg: #09090b; --surface: #141417; --surface2: #1e1e24;
-            --border: #2a2a32; --text: #ededf0; --text-dim: #a1a1aa;
+            --bg: #0e0c11; --surface: #19161f; --surface2: #231f2b;
+            --border: #38334a; --text: #e8e0ec; --text-dim: #9a8fa8;
             --shadow: rgba(0,0,0,0.45); --shadow-md: rgba(0,0,0,0.65); --shadow-glow: rgba(196, 69, 105, 0.35);
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -228,12 +229,38 @@ $backUrl     = 'index.php?view=dashboard&device=' . urlencode($device);
         [data-theme="dark"] .status-fresh  { background: #0c1a2e; color: #38bdf8; box-shadow: 0 0 12px rgba(56, 189, 248, 0.2); }
         [data-theme="dark"] .status-kept   { background: #1c1500; color: #fbbf24; box-shadow: 0 0 12px rgba(251, 191, 36, 0.2); }
 
-        /* Error */
+        /* Error box */
         .error-box {
-            background: #fee2e2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 20px;
-            color: #991b1b; font-size: 0.9em; line-height: 1.6; display: flex; flex-direction: column; gap: 8px;
+            background: var(--surface2); border: 1px solid rgba(239,68,68,0.35);
+            border-left: 4px solid #ef4444;
+            border-radius: var(--radius); padding: 20px 22px;
+            color: var(--text); font-size: 0.9em; line-height: 1.6;
+            display: flex; flex-direction: column; gap: 12px;
         }
-        [data-theme="dark"] .error-box { background: #1f0808; border-color: #7f1d1d; color: #f87171; }
+        .error-box-title {
+            display: flex; align-items: center; gap: 10px;
+            font-family: 'Outfit', sans-serif; font-weight: 700;
+            font-size: 1em; color: #ef4444;
+        }
+        .error-box-msg {
+            color: var(--text-dim); font-size: 0.88em; line-height: 1.6;
+        }
+        .error-box-retry {
+            font-size: 0.82em; color: var(--text-dim); font-style: italic;
+        }
+        .error-raw-toggle {
+            font-size: 0.75em; color: var(--primary); cursor: pointer;
+            text-decoration: underline; background: none; border: none;
+            padding: 0; font-family: inherit;
+        }
+        .error-raw-details {
+            display: none; font-size: 0.75em; font-family: monospace;
+            background: rgba(0,0,0,0.08); padding: 10px 12px;
+            border-radius: 8px; white-space: pre-wrap; word-break: break-all;
+            max-height: 140px; overflow-y: auto; color: var(--text-dim);
+            margin-top: 4px;
+        }
+        [data-theme="dark"] .error-raw-details { background: rgba(0,0,0,0.3); }
 
         /* Toasts */
         #toast-container {
@@ -542,9 +569,38 @@ $backUrl     = 'index.php?view=dashboard&device=' . urlencode($device);
                 setAnalyzing(false);
 
                 if (data && data.error) {
-                    const det = typeof data.details === 'object' ? JSON.stringify(data.details, null, 2) : String(data.details || '');
-                    if (area) area.innerHTML = `<div class="error-box"><strong>${escapeHtml(data.error)}</strong>${det ? `<br><br><code style="font-size:0.85em;white-space:pre-wrap;">${escapeHtml(det)}</code>` : ''}</div>`;
-                    showToast('Analysis failed: ' + data.error, 'error');
+                    // ── Build a friendly error card ──────────────────────────
+                    const rawDet = typeof data.details === 'object'
+                        ? JSON.stringify(data.details, null, 2)
+                        : String(data.details || '');
+
+                    // Parse API code / message from details if available
+                    let apiCode = null, apiMsg = null;
+                    if (typeof data.details === 'object' && data.details?.error) {
+                        apiCode = data.details.error.code;
+                        apiMsg  = data.details.error.message;
+                    } else if (rawDet.includes('"code"')) {
+                        try { const p = JSON.parse(rawDet); apiCode = p?.error?.code; apiMsg = p?.error?.message; } catch(e) {}
+                    }
+
+                    // Human-readable explanations for common codes
+                    const friendly = {
+                        503: { icon: '⏳', title: 'API Temporarily Busy', msg: 'Gemini is under high demand right now. Wait a moment and try again — this usually resolves in under a minute.' },
+                        429: { icon: '🚦', title: 'Quota Exceeded', msg: 'The API rate limit has been reached. Please wait a few minutes before retrying.' },
+                        400: { icon: '⚠️', title: 'Invalid Request', msg: 'The image could not be processed. The file may be corrupted or in an unsupported format.' },
+                        401: { icon: '🔑', title: 'API Key Invalid', msg: 'The Gemini API key is missing or invalid. Check your server configuration.' },
+                        500: { icon: '🔧', title: 'Server Error', msg: 'Something went wrong on the AI server. Please try again.' },
+                    }[apiCode] || { icon: '❌', title: data.error, msg: apiMsg || 'An unexpected error occurred. Please try again.' };
+
+                    const rawId = 'errRaw' + Date.now();
+                    if (area) area.innerHTML = `
+                        <div class="error-box">
+                            <div class="error-box-title">${friendly.icon} ${escapeHtml(friendly.title)}</div>
+                            <div class="error-box-msg">${escapeHtml(friendly.msg)}</div>
+                            <div class="error-box-retry">💡 Click <strong>Identify Species</strong> to try again.</div>
+                            ${rawDet ? `<button class="error-raw-toggle" onclick="const d=document.getElementById('${rawId}');d.style.display=d.style.display==='none'?'block':'none'">Show technical details</button><pre id="${rawId}" class="error-raw-details">${escapeHtml(rawDet)}</pre>` : ''}
+                        </div>`;
+                    showToast(friendly.icon + ' ' + friendly.title, 'error');
                     return;
                 }
 

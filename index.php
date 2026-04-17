@@ -51,6 +51,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Insect NET — Mission Control</title>
         <meta name="description" content="INMT Mission Control Dashboard — NeuRonICS Lab, IISc Bangalore">
+        <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦟</text></svg>">
         <link
             href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@500;700&display=swap"
             rel="stylesheet">
@@ -2011,11 +2012,11 @@
                             }
                             const upEl = document.getElementById('deviceLastUpdated');
                             if (upEl) upEl.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
-                        }).catch(err => {
+                        }).catch(() => {
                             clearTimeout(timeout);
-                            // Silently handle missing get_status.php — devices may be offline
+                            // Silently handle — device is offline or endpoint unavailable
                             const upEl = document.getElementById('deviceLastUpdated');
-                            if (upEl) upEl.textContent = `Last updated: ${new Date().toLocaleTimeString()} — Device offline`;
+                            if (upEl) upEl.textContent = `Last updated: ${new Date().toLocaleTimeString()} · Device offline`;
                         });
                 }
                 // Poll less aggressively — every 30s — since devices are often offline
