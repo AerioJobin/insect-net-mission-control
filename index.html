@@ -258,12 +258,34 @@
             opacity: 0.7;
         }
 
-        /* Responsive */
+        /* Tablet */
+        @media (max-width: 768px) {
+            .title { letter-spacing: 5px; }
+            .badges { gap: 8px; }
+            .badge { font-size: 0.68em; padding: 4px 12px; }
+        }
+
+        /* iPhone */
         @media (max-width: 480px) {
+            .logo-pill { padding: 12px 24px; margin-bottom: 32px; }
             .logo-pill img { height: 56px; }
             .logo-sep { height: 44px; margin: 0 18px; }
-            .logo-pill { padding: 12px 24px; }
-            .cta-btn { padding: 16px 36px; font-size: 0.95em; }
+            .title { font-size: 2.6em; letter-spacing: 4px; }
+            .subtitle { font-size: 0.72em; letter-spacing: 2px; }
+            .badges { gap: 7px; }
+            .badge { font-size: 0.65em; padding: 4px 10px; }
+            .cta-btn { padding: 15px 36px; font-size: 0.92em; letter-spacing: 1.5px; }
+            .login-link { font-size: 0.78em; }
+            .footer { font-size: 0.66em; bottom: 16px; }
+        }
+
+        /* Small iPhone (SE, 375px) */
+        @media (max-width: 390px) {
+            .logo-pill img { height: 46px; }
+            .logo-sep { height: 36px; margin: 0 14px; }
+            .title { font-size: 2.2em; letter-spacing: 3px; }
+            .badges { flex-direction: column; align-items: center; }
+            .cta-btn { padding: 14px 28px; font-size: 0.88em; }
         }
     </style>
 </head>

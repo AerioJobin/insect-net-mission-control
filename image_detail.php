@@ -320,6 +320,59 @@ $backUrl     = 'index.php?view=dashboard&device=' . urlencode($device);
             0%   { background-position: 200% 0; }
             100% { background-position: -200% 0; }
         }
+        /* ════════════════════════════════════════
+           RESPONSIVE — TABLET & MOBILE
+        ════════════════════════════════════════ */
+
+        @media (max-width: 900px) {
+            .detail-layout { grid-template-columns: 1fr; gap: 20px; }
+            .page { padding: 0; }
+            body { padding: 20px 16px; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 16px 12px; }
+            .top-bar { padding: 12px 14px; margin-bottom: 20px; }
+            .back-btn { font-size: 0.82em; padding: 8px 14px; }
+            .page-title { font-size: 0.88em; letter-spacing: 0.5px; }
+            .btn-identify { padding: 15px; font-size: 0.95em; }
+            .card { padding: 18px; }
+        }
+
+        @media (max-width: 480px) {
+            body { padding: 12px 10px; }
+
+            /* Top bar: stack vertically */
+            .top-bar {
+                flex-wrap: wrap;
+                gap: 10px;
+                padding: 12px;
+                margin-bottom: 16px;
+            }
+            .back-btn { font-size: 0.78em; padding: 7px 12px; }
+            .page-title { font-size: 0.82em; order: 3; width: 100%; text-align: center; }
+            .theme-toggle { width: 36px; height: 36px; font-size: 1em; }
+
+            /* Image panel */
+            .img-panel img { border-radius: 10px; }
+            .img-meta { padding: 12px 14px; }
+            .img-filename { font-size: 0.7em; }
+
+            /* Result cards */
+            .card { padding: 14px 16px; border-radius: 12px; }
+            .card-title { font-size: 0.65em; }
+
+            /* Identify button */
+            .btn-identify { padding: 15px; font-size: 0.9em; letter-spacing: 1px; }
+
+            /* Toast */
+            #toast-container { right: 10px; top: 10px; }
+            .toast { max-width: calc(100vw - 24px); font-size: 0.78em; padding: 10px 14px; }
+
+            /* Error box */
+            .error-box { padding: 14px 16px; }
+        }
+
     </style>
 </head>
 <body>

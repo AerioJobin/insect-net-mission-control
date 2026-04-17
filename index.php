@@ -1311,6 +1311,99 @@
                 clip: rect(0, 0, 0, 0);
                 white-space: nowrap;
             }
+            /* ════════════════════════════════════════
+               RESPONSIVE — TABLET & MOBILE
+            ════════════════════════════════════════ */
+
+            /* Tablet (iPad) */
+            @media (max-width: 900px) {
+                .container { padding: 14px; }
+                .header { padding: 16px 18px; }
+                .header-content { gap: 12px; }
+                .panel-row { grid-template-columns: 1fr; }
+                .image-gallery { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+                .device-grid { grid-template-columns: 1fr 1fr; }
+                .detail-layout { grid-template-columns: 1fr; }
+            }
+
+            /* Large phones */
+            @media (max-width: 768px) {
+                /* Header */
+                .header { padding: 14px 16px; margin-bottom: 16px; }
+                .header-logos img { height: 28px !important; }
+                .logo-sep { margin: 0 10px !important; height: 26px !important; }
+                .site-title { font-size: 1.2em !important; letter-spacing: 3px; }
+                .site-sub   { font-size: 0.6em !important; display: none; }
+
+                /* User chip — hide role badge on small screens */
+                .user-role-badge { display: none; }
+                .user-chip { gap: 8px; }
+                .user-name { font-size: 0.82em; }
+
+                /* Device cards */
+                .device-grid { grid-template-columns: 1fr; gap: 12px; }
+
+                /* Gallery */
+                .image-gallery { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+
+                /* Bar chart — smaller labels */
+                .chart-label { font-size: 0.45em; }
+                .chart-count { font-size: 0.5em; }
+
+                /* Map */
+                #map, #map-container { height: 220px !important; }
+
+                /* Lightbox */
+                .lightbox-panel img { max-width: 92vw; max-height: 55vh; }
+                .lightbox-nav.prev { left: -40px; padding: 6px 8px; }
+                .lightbox-nav.next { right: -40px; padding: 6px 8px; }
+            }
+
+            /* iPhone (390px and below) */
+            @media (max-width: 480px) {
+                /* Header — stack logo + title above user chip */
+                .header-content { flex-direction: column; align-items: flex-start; gap: 10px; }
+                .header-right { width: 100%; display: flex; justify-content: flex-end; }
+                .header-logos img { height: 24px !important; }
+                .logo-sep { margin: 0 8px !important; height: 22px !important; }
+                .site-title { font-size: 1em !important; letter-spacing: 2px; }
+
+                /* Theme toggle moves inside flow */
+                .theme-toggle { top: 12px; right: 12px; width: 34px; height: 34px; font-size: 0.9em; }
+
+                /* Container */
+                .container { padding: 10px; }
+
+                /* Single column gallery */
+                .image-gallery { grid-template-columns: 1fr; gap: 10px; }
+
+                /* Bar chart scroll on very small screens */
+                .chart-bars { gap: 3px; height: 60px; }
+                .chart-label { font-size: 0.42em; }
+                .chart-count { font-size: 0.46em; }
+                .day-chart { padding: 14px 12px; }
+
+                /* Panel / modem row stacks */
+                .panel-row { gap: 10px; }
+                .modem-panel { padding: 14px 16px; }
+
+                /* Back button */
+                .back-link { font-size: 0.8em; padding: 8px 14px; }
+
+                /* Landing */
+                .landing-title { font-size: 2.2em !important; letter-spacing: 4px; }
+                .landing-sub   { letter-spacing: 1.5px; margin-bottom: 24px; }
+
+                /* Lightbox — no side nav, use swipe instead */
+                .lightbox-nav.prev { left: 4px; }
+                .lightbox-nav.next { right: 4px; }
+                .lightbox-panel img { max-width: 96vw; max-height: 50vh; }
+
+                /* Toast width */
+                .toast { max-width: calc(100vw - 32px); font-size: 0.78em; }
+                #toast-container { right: 12px; top: 12px; }
+            }
+
         </style>
     </head>
 
