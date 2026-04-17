@@ -1311,6 +1311,27 @@
                 clip: rect(0, 0, 0, 0);
                 white-space: nowrap;
             }
+            /* ═══ IDENTIFIED BADGE ═══ */
+            .identified-badge {
+                position: absolute;
+                top: 8px;
+                left: 8px;
+                background: rgba(22,163,74,0.9);
+                color: #fff;
+                font-size: 0.62em;
+                font-weight: 700;
+                padding: 3px 8px;
+                border-radius: 99px;
+                letter-spacing: 0.5px;
+                z-index: 11;
+                display: flex;
+                align-items: center;
+                gap: 4px;
+                backdrop-filter: blur(4px);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+                pointer-events: none;
+            }
+
             /* ════════════════════════════════════════
                RESPONSIVE — TABLET & MOBILE
             ════════════════════════════════════════ */
@@ -1517,6 +1538,7 @@
                         $statusClass = deviceStatusClass($lastTs);
                         $statusLabel = deviceStatusLabel($lastTs);
                         $lastSeenStr = lastSeenLabel($lastTs);
+                        $lastCaptureStr = $lastTs ? date('M j, Y', $lastTs) : null;
                         ?>
                         <div class="device-card status-<?= $statusClass ?>"
                             onclick="location.href='index.php?view=dashboard&device=<?= $info['key'] ?>'">
@@ -1527,6 +1549,9 @@
                             <h3><?= $info['label'] ?></h3>
                             <p id="battery-<?= $camId ?>" class="device-meta">Battery: <span>--</span></p>
                             <p class="device-meta">Last seen: <span id="lastseen-<?= $camId ?>"><?= $lastSeenStr ?></span></p>
+                            <?php if ($lastCaptureStr): ?>
+                            <p class="device-meta">Last capture: <strong><?= $lastCaptureStr ?></strong></p>
+                            <?php endif; ?>
                             <p class="device-meta"><?= $imgCount ?> image<?= $imgCount !== 1 ? 's' : '' ?> stored</p>
                             <div class="device-battery-bar">
                                 <div id="battbar-<?= $camId ?>" class="device-battery-fill"></div>
@@ -1825,7 +1850,11 @@
                     $galleryData = [];
                     foreach ($grouped as $day => $df) {
                         usort($df, fn($a, $b) => filemtime($b) - filemtime($a));
-                        $galleryData[] = ['date' => $day, 'files' => array_map(fn($f) => ['src' => $f, 'name' => basename($f)], $df)];
+                        $galleryData[] = ['date' => $day, 'files' => array_map(fn($f) => [
+                            'src'        => $f,
+                            'name'       => basename($f),
+                            'identified' => is_file($upload_dir . pathinfo(basename($f), PATHINFO_FILENAME) . '.json'),
+                        ], $df)];
                     }
                 }
                 echo 'const GALLERY_DATA = ' . json_encode($galleryData) . ';';
@@ -1857,6 +1886,14 @@
                                 img.addEventListener('error', () => { wrap.classList.add('img-ready'); img.style.display = 'none'; });
                                 img.addEventListener('click', () => openLightbox(item.src));
                                 wrap.appendChild(img); card.appendChild(wrap);
+
+                                // ✓ Analysed badge if JSON cache exists
+                                if (item.identified) {
+                                    const badge = document.createElement('div');
+                                    badge.className = 'identified-badge';
+                                    badge.innerHTML = '✓ Analysed';
+                                    wrap.appendChild(badge);
+                                }
 
                                 // View Details link → image_detail.php
                                 const detailBtn = document.createElement('a');

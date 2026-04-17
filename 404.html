@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 — Page Not Found · INSECT NET</title>
+    <link rel="icon" type="image/png" href="neuronics_logo.png">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');</script>
+    <style>
+        :root {
+            --primary: #8A2245; --accent: #c44569;
+            --bg: #0e0c11; --surface: #19161f; --border: #38334a;
+            --text: #e8e0ec; --text-dim: #9a8fa8;
+        }
+        [data-theme="light"] {
+            --bg: #FDFBF7; --surface: #FFFFFF; --border: #dee2e6;
+            --text: #4E4247; --text-dim: #6c757d;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg); color: var(--text);
+            min-height: 100vh;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            text-align: center; padding: 24px;
+            background-image: radial-gradient(var(--border) 1px, transparent 1px);
+            background-size: 28px 28px;
+        }
+        .glow {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+            background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(138,34,69,0.18), transparent 65%);
+        }
+        .card {
+            position: relative; z-index: 1;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 24px; padding: 52px 48px;
+            max-width: 480px; width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+        }
+        .code {
+            font-family: 'Space Mono', monospace;
+            font-size: clamp(5em, 18vw, 8em);
+            font-weight: 700; line-height: 1;
+            background: linear-gradient(135deg, var(--text) 0%, var(--accent) 100%);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            background-clip: text; margin-bottom: 8px;
+        }
+        .icon { font-size: 2.8em; margin-bottom: 16px; }
+        h1 {
+            font-family: 'Outfit', sans-serif; font-size: 1.3em;
+            font-weight: 700; letter-spacing: 1px; margin-bottom: 10px;
+        }
+        p { color: var(--text-dim); font-size: 0.9em; line-height: 1.7; margin-bottom: 32px; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            color: #fff; text-decoration: none;
+            font-family: 'Outfit', sans-serif; font-size: 0.9em;
+            font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+            padding: 14px 36px; border-radius: 99px;
+            box-shadow: 0 6px 24px rgba(138,34,69,0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(138,34,69,0.45); }
+        .footer { margin-top: 24px; font-size: 0.72em; color: var(--text-dim); }
+    </style>
+</head>
+<body>
+    <div class="glow"></div>
+    <div class="card">
+        <div class="icon">🦟</div>
+        <div class="code">404</div>
+        <h1>Page Not Found</h1>
+        <p>The page you're looking for doesn't exist or has been moved. Head back to Mission Control.</p>
+        <a href="login.php" class="btn">← Mission Control</a>
+    </div>
+    <p class="footer">INSECT NET · NeuRonICS Lab, IISc Bangalore</p>
+</body>
+</html>

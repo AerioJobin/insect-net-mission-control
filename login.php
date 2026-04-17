@@ -32,11 +32,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Insect NET — Login</title>
+    <!-- Apply saved theme BEFORE render to prevent flash -->
+    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');</script>
     <meta name="description" content="INMT Mission Control Dashboard — NeuRonICS Lab, IISc Bangalore">
     <link rel="icon" type="image/png" href="neuronics_logo.png">
     <link rel="shortcut icon" type="image/png" href="neuronics_logo.png">
@@ -513,14 +515,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <button type="submit" class="form-submit">🔐 Sign In</button>
             </form>
 
-            <!-- Demo credentials -->
-            <div class="demo-hint">
-                <strong>📌 Demo Credentials:</strong>
-                <div class="demo-label">Admin Account:</div>
-                <div class="demo-cred">admin / iisc_admin_2026</div>
-                <div class="demo-label">User Account:</div>
-                <div class="demo-cred">researcher / insect_user_2026</div>
-            </div>
         </div>
     </div>
 

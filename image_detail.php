@@ -32,7 +32,7 @@ $backUrl     = 'index.php?view=dashboard&device=' . urlencode($device);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?= htmlspecialchars($imageFile) ?> — INSECT NET</title>
+    <title>Species ID — <?= date('M j, Y', filemtime($imagePath)) ?> — INSECT NET</title>
     <meta name="description" content="AI Identification result for <?= htmlspecialchars($imageFile) ?>">
     <link rel="icon" type="image/png" href="neuronics_logo.png">
     <link rel="shortcut icon" type="image/png" href="neuronics_logo.png">
