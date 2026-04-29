@@ -19,6 +19,14 @@ $body = json_decode(file_get_contents('php://input'), true) ?? [];
 
 $action = $body['action'] ?? '';
 
+// ── Validate CSRF token ───────────────────────────────────────────────────
+$csrfToken = $body['csrf_token'] ?? '';
+if (!validateCSRFToken($csrfToken)) {
+    http_response_code(403);
+    echo json_encode(['ok' => false, 'error' => 'Invalid security token. Please refresh the page and try again.']);
+    exit();
+}
+
 // ── Load users ─────────────────────────────────────────────────────────────
 function loadUsers($file) {
     return file_exists($file) ? (json_decode(file_get_contents($file), true) ?? []) : [];

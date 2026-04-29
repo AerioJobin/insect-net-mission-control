@@ -21,15 +21,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Validate CSRF token
     if (!validateCSRFToken($token)) {
         $error = "Security token expired. Please try again.";
+    // Check rate limiting
+    } elseif (!checkLoginRateLimit()) {
+        $remaining = getRemainingLockoutTime();
+        $mins = ceil($remaining / 60);
+        $error = "Too many login attempts. Please try again in {$mins} minute" . ($mins > 1 ? 's' : '') . ".";
     } elseif (!empty($user) && !empty($pass)) {
         // Use password_verify for secure password checking
         if (isset($users[$user]) && verifyPassword($pass, $users[$user]['password'])) {
+            // Regenerate session ID to prevent session fixation
+            session_regenerate_id(true);
             $_SESSION['username'] = $user;
             $_SESSION['role'] = $users[$user]['role'];
             $_SESSION['last_activity'] = time();
+            resetLoginAttempts();
             header("Location: index.php");
             exit();
         } else {
+            recordLoginAttempt();
             $error = "Invalid username or password";
         }
     } else {        
@@ -479,9 +488,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="login-panel">
             <!-- Branding -->
             <div class="login-branding">
-                <img src="assets/neuronics_logo.png" class="login-logo" onerror="this.style.display='none'" alt="NeuRonICS">
+                <img src="neuronics_logo.png" class="login-logo" onerror="this.style.display='none'" alt="NeuRonICS">
                 <div class="logo-divider"></div>
-                <img src="assets/iisc_logo.jpg" class="login-logo" onerror="this.style.display='none'" alt="IISc">
+                <img src="iisc_logo.jpg" class="login-logo" onerror="this.style.display='none'" alt="IISc">
             </div>
 
             <h1 class="login-title">INSECT NET</h1>

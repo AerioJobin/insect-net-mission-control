@@ -1,11 +1,61 @@
+# ═══ CUSTOM 404 ═══
 ErrorDocument 404 /404.html
 
-# Protect sensitive data files from direct browser access
+# ═══ DISABLE DIRECTORY LISTING EVERYWHERE ═══
+Options -Indexes
+
+# ═══ BLOCK SENSITIVE FILES FROM DIRECT ACCESS ═══
+
+# Block users.json (password hashes!)
 <Files "users.json">
-    Order Allow,Deny
-    Deny from all
+    Require all denied
 </Files>
+
+# Block all .json files in root (prevent data leaks)
+<FilesMatch "\.json$">
+    Require all denied
+</FilesMatch>
+
+# Block .env files
+<FilesMatch "^\.env">
+    Require all denied
+</FilesMatch>
+
+# Block .sqlite database files
+<FilesMatch "\.sqlite$">
+    Require all denied
+</FilesMatch>
+
+# Block .bak backup files
+<FilesMatch "\.bak$">
+    Require all denied
+</FilesMatch>
+
+# Block .git directory
+<DirectoryMatch "/\.git">
+    Require all denied
+</DirectoryMatch>
+
+# Block shell scripts
+<FilesMatch "\.(sh|bash)$">
+    Require all denied
+</FilesMatch>
+
+# Block .gitignore
+<Files ".gitignore">
+    Require all denied
+</Files>
+
+# ═══ ALLOW API ENDPOINTS (PHP files are fine) ═══
 <Files "admin_api.php">
-    Order Allow,Deny
-    Allow from all
+    Require all granted
 </Files>
+
+# ═══ SECURITY HEADERS ═══
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "DENY"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>

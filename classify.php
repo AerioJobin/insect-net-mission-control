@@ -1,6 +1,6 @@
 <?php
 include('config.php');
-// checkAccess('user'); // Uncomment this once you verify the AI works
+checkAccess('user'); // Authentication required to use AI classification
 set_time_limit(120);
 header('Content-Type: application/json; charset=utf-8');
 
@@ -45,7 +45,7 @@ while ($attempt < $maxRetries) {
     $attempt++;
     $ch = curl_init($endpoint);
     curl_setopt($ch, CURLOPT_HTTPHEADER,  ["Content-Type: application/json"]);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
     curl_setopt($ch, CURLOPT_POST,           true);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS,     json_encode($payload));
