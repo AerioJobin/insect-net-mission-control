@@ -463,6 +463,7 @@ $backUrl     = 'index.php?view=dashboard&device=' . urlencode($device);
         const IMG_FILE   = <?= json_encode($imageFile) ?>;
         const HAS_CACHE  = <?= $cached ? 'true' : 'false' ?>;
         const OLD_CONF   = <?= $confPct ?? 'null' ?>;  // PHP-rendered old confidence %
+        const CSRF_TOKEN = <?= json_encode(generateCSRFToken()) ?>;
 
         document.addEventListener('DOMContentLoaded', () => {
             // Theme
@@ -607,7 +608,7 @@ $backUrl     = 'index.php?view=dashboard&device=' . urlencode($device);
             fetch('classify.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'image=' + encodeURIComponent(IMG_FILE) + (forceFresh ? '&force=1' : '')
+                body: 'image=' + encodeURIComponent(IMG_FILE) + (forceFresh ? '&force=1' : '') + '&csrf_token=' + encodeURIComponent(CSRF_TOKEN)
             })
             .then(async r => {
                 const txt = await r.text();
@@ -705,7 +706,7 @@ $backUrl     = 'index.php?view=dashboard&device=' . urlencode($device);
             fetch('clear_cache.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'image=' + encodeURIComponent(IMG_FILE)
+                body: 'image=' + encodeURIComponent(IMG_FILE) + '&csrf_token=' + encodeURIComponent(CSRF_TOKEN)
             })
             .then(r => r.json())
             .then(data => {

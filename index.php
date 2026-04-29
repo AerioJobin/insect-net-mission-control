@@ -2052,6 +2052,7 @@ function deviceStatusLabel($ts)
 
     <!-- Shared JS: theme + toasts + timeSince -->
     <script>
+        var CSRF_TOKEN = <?php echo json_encode(generateCSRFToken()); ?>;
         (function () {
             const saved = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', saved);
@@ -2611,7 +2612,7 @@ function deviceStatusLabel($ts)
                         group.files.forEach(item => {
                             const card = document.createElement('div'); card.className = 'image-container';
                             const wrap = document.createElement('div'); wrap.className = 'img-wrapper';
-                            const img = document.createElement('img'); img.dataset.src = item.src; img.alt = item.name;
+                            const img = document.createElement('img'); img.dataset.src = 'thumbnail.php?file=' + encodeURIComponent(item.name) + '&w=300'; img.alt = item.name;
                             img.addEventListener('load', () => { img.classList.add('loaded'); wrap.classList.add('img-ready'); });
                             img.addEventListener('error', () => { wrap.classList.add('img-ready'); img.style.display = 'none'; });
                             img.addEventListener('click', () => openLightbox(item.src));
@@ -2719,7 +2720,7 @@ function deviceStatusLabel($ts)
                     badgeEl.innerHTML = '<em>Analyzing...</em>';
                     if (btnEl) { btnEl.disabled = true; btnEl.textContent = '⏳ Analyzing...'; }
 
-                    const formData = new URLSearchParams({ image: filename });
+                    const formData = new URLSearchParams({ image: filename, csrf_token: CSRF_TOKEN });
                     fetch('classify.php', {
                         method: 'POST',
                         body: formData

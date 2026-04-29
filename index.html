@@ -7,8 +7,11 @@
     <meta name="description" content="INMT Mission Control — NeuRonICS Lab, IISc Bangalore. AI-powered insect trap monitoring system.">
     <link rel="icon" type="image/png" href="neuronics_logo.png">
     <link rel="shortcut icon" type="image/png" href="neuronics_logo.png">
+    <!-- Apply saved theme BEFORE render to prevent flash -->
+    <script>document.documentElement.setAttribute('data-theme', localStorage.getItem('theme') || 'dark');</script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* ═══ DARK THEME (default) ═══ */
         :root {
             --primary:   #8A2245;
             --secondary: #6b1a36;
@@ -22,6 +25,41 @@
             --glow:      rgba(196, 69, 105, 0.35);
             --radius:    20px;
             --tr:        0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --dot-color: rgba(255,255,255,0.055);
+            --orb1-bg:   rgba(138,34,69,0.28);
+            --orb2-bg:   rgba(196,69,105,0.18);
+            --orb3-bg:   rgba(107,26,54,0.22);
+            --bg-radial1: rgba(138,34,69,0.22);
+            --bg-radial2: rgba(196,69,105,0.12);
+            --bg-radial3: rgba(107,26,54,0.15);
+            --shadow:    rgba(0,0,0,0.4);
+            --pill-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(196,69,105,0.1);
+            --cta-shadow: 0 8px 32px rgba(138,34,69,0.45), 0 0 0 1px rgba(255,255,255,0.06) inset;
+            --cta-hover-shadow: 0 16px 48px rgba(138,34,69,0.55), 0 0 0 1px rgba(255,255,255,0.1) inset;
+            --title-gradient: linear-gradient(135deg, #e8e0ec 0%, var(--accent) 50%, #c44569 100%);
+        }
+
+        /* ═══ LIGHT THEME ═══ */
+        [data-theme="light"] {
+            --bg:        #FDFBF7;
+            --surface:   #FFFFFF;
+            --surface2:  #F7F3F5;
+            --border:    #dee2e6;
+            --text:      #4E4247;
+            --text-dim:  #6c757d;
+            --glow:      rgba(138, 34, 69, 0.15);
+            --dot-color: rgba(0,0,0,0.04);
+            --orb1-bg:   rgba(138,34,69,0.10);
+            --orb2-bg:   rgba(196,69,105,0.07);
+            --orb3-bg:   rgba(107,26,54,0.08);
+            --bg-radial1: rgba(138,34,69,0.08);
+            --bg-radial2: rgba(196,69,105,0.05);
+            --bg-radial3: rgba(107,26,54,0.06);
+            --shadow:    rgba(0,0,0,0.08);
+            --pill-shadow: 0 8px 40px rgba(0,0,0,0.08), 0 0 0 1px rgba(138,34,69,0.08);
+            --cta-shadow: 0 8px 32px rgba(138,34,69,0.25), 0 0 0 1px rgba(255,255,255,0.2) inset;
+            --cta-hover-shadow: 0 16px 48px rgba(138,34,69,0.35), 0 0 0 1px rgba(255,255,255,0.3) inset;
+            --title-gradient: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, #d4597b 100%);
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -37,6 +75,31 @@
             justify-content: center;
             overflow: hidden;
             position: relative;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* ── Theme Toggle ── */
+        .theme-toggle {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            cursor: pointer;
+            font-size: 1.05em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 12px var(--shadow);
+            transition: all var(--tr);
+        }
+        .theme-toggle:hover {
+            background: var(--surface2);
+            transform: scale(1.1);
         }
 
         /* ── Animated background ── */
@@ -44,10 +107,11 @@
             position: fixed;
             inset: 0;
             z-index: 0;
-            background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(138,34,69,0.22) 0%, transparent 65%),
-                        radial-gradient(ellipse 60% 50% at 80% 80%, rgba(196,69,105,0.12) 0%, transparent 60%),
-                        radial-gradient(ellipse 50% 40% at 20% 70%, rgba(107,26,54,0.15) 0%, transparent 55%),
-                        #0e0c11;
+            background: radial-gradient(ellipse 80% 60% at 50% 0%, var(--bg-radial1) 0%, transparent 65%),
+                        radial-gradient(ellipse 60% 50% at 80% 80%, var(--bg-radial2) 0%, transparent 60%),
+                        radial-gradient(ellipse 50% 40% at 20% 70%, var(--bg-radial3) 0%, transparent 55%),
+                        var(--bg);
+            transition: background 0.3s ease;
         }
 
         /* dot grid */
@@ -55,7 +119,7 @@
             content: '';
             position: absolute;
             inset: 0;
-            background-image: radial-gradient(rgba(255,255,255,0.055) 1px, transparent 1px);
+            background-image: radial-gradient(var(--dot-color) 1px, transparent 1px);
             background-size: 28px 28px;
         }
 
@@ -66,23 +130,24 @@
             filter: blur(80px);
             pointer-events: none;
             animation: orbFloat 14s ease-in-out infinite;
+            transition: background 0.3s ease;
         }
         .orb-1 {
             width: 520px; height: 520px;
-            background: radial-gradient(circle, rgba(138,34,69,0.28), transparent 70%);
+            background: radial-gradient(circle, var(--orb1-bg), transparent 70%);
             top: -120px; left: -100px;
             animation-duration: 16s;
         }
         .orb-2 {
             width: 380px; height: 380px;
-            background: radial-gradient(circle, rgba(196,69,105,0.18), transparent 70%);
+            background: radial-gradient(circle, var(--orb2-bg), transparent 70%);
             bottom: -80px; right: -80px;
             animation-duration: 12s;
             animation-delay: -5s;
         }
         .orb-3 {
             width: 260px; height: 260px;
-            background: radial-gradient(circle, rgba(107,26,54,0.22), transparent 70%);
+            background: radial-gradient(circle, var(--orb3-bg), transparent 70%);
             top: 40%; left: 60%;
             animation-duration: 20s;
             animation-delay: -9s;
@@ -120,8 +185,9 @@
             border-radius: 999px;
             padding: 16px 36px;
             margin-bottom: 44px;
-            box-shadow: 0 8px 40px rgba(0,0,0,0.4), 0 0 0 1px rgba(196,69,105,0.1);
+            box-shadow: var(--pill-shadow);
             animation: fadeUp 0.8s 0.05s both;
+            transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
         }
         .logo-pill img {
             height: 80px;
@@ -135,6 +201,7 @@
             background: var(--border);
             margin: 0 28px;
             flex-shrink: 0;
+            transition: background 0.3s ease;
         }
 
         /* Title */
@@ -144,7 +211,7 @@
             font-weight: 700;
             letter-spacing: 8px;
             text-transform: uppercase;
-            background: linear-gradient(135deg, #e8e0ec 0%, var(--accent) 50%, #c44569 100%);
+            background: var(--title-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -161,6 +228,7 @@
             text-transform: uppercase;
             margin-bottom: 20px;
             animation: fadeUp 0.8s 0.15s both;
+            transition: color 0.3s ease;
         }
 
         /* Status badges */
@@ -185,9 +253,12 @@
             background: var(--surface2);
             color: var(--text-dim);
             letter-spacing: 0.5px;
+            transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
         }
         .badge.live { border-color: rgba(74,222,128,0.3); background: rgba(74,222,128,0.08); color: #4ade80; }
         .badge.ai   { border-color: rgba(196,69,105,0.3); background: rgba(196,69,105,0.08); color: var(--accent); }
+        [data-theme="light"] .badge.live { color: #16a34a; background: rgba(22,163,74,0.08); border-color: rgba(22,163,74,0.25); }
+        [data-theme="light"] .badge.ai   { color: var(--primary); background: rgba(138,34,69,0.06); border-color: rgba(138,34,69,0.2); }
         .badge-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 2s ease-in-out infinite; }
         @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.3; } }
 
@@ -206,7 +277,7 @@
             text-transform: uppercase;
             padding: 18px 52px;
             border-radius: 99px;
-            box-shadow: 0 8px 32px rgba(138,34,69,0.45), 0 0 0 1px rgba(255,255,255,0.06) inset;
+            box-shadow: var(--cta-shadow);
             transition: all var(--tr);
             position: relative;
             overflow: hidden;
@@ -223,7 +294,7 @@
         .cta-btn:hover::before { transform: translateX(100%); }
         .cta-btn:hover {
             transform: translateY(-4px);
-            box-shadow: 0 16px 48px rgba(138,34,69,0.55), 0 0 0 1px rgba(255,255,255,0.1) inset;
+            box-shadow: var(--cta-hover-shadow);
         }
         .cta-btn:active { transform: translateY(-1px); }
         .cta-arrow { font-size: 1.1em; transition: transform 0.3s; }
@@ -235,6 +306,7 @@
             font-size: 0.82em;
             color: var(--text-dim);
             animation: fadeUp 0.8s 0.3s both;
+            transition: color 0.3s ease;
         }
         .login-link a {
             color: var(--accent);
@@ -256,6 +328,7 @@
             color: var(--text-dim);
             letter-spacing: 1px;
             opacity: 0.7;
+            transition: color 0.3s ease;
         }
 
         /* Tablet */
@@ -290,6 +363,9 @@
     </style>
 </head>
 <body>
+
+    <!-- Theme toggle -->
+    <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">🌙</button>
 
     <div class="bg-canvas">
         <div class="orb orb-1"></div>
@@ -329,6 +405,23 @@
     <footer class="footer">
         INMT &copy; <script>document.write(new Date().getFullYear())</script> &nbsp;·&nbsp; NeuRonICS Lab, IISc Bangalore
     </footer>
+
+    <script>
+        // Theme toggle — reads from localStorage, syncs with other pages
+        (function () {
+            const saved = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', saved);
+            const btn = document.getElementById('themeToggle');
+            btn.textContent = saved === 'dark' ? '☀️' : '🌙';
+            btn.addEventListener('click', () => {
+                const cur = document.documentElement.getAttribute('data-theme');
+                const next = cur === 'dark' ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-theme', next);
+                localStorage.setItem('theme', next);
+                btn.textContent = next === 'dark' ? '☀️' : '🌙';
+            });
+        })();
+    </script>
 
 </body>
 </html>

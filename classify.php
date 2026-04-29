@@ -8,6 +8,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
     die(json_encode(['error' => 'POST required']));
 }
 
+// ═══ CSRF VALIDATION ═══
+$csrfToken = $_POST['csrf_token'] ?? ($_SERVER['HTTP_X_CSRF_TOKEN'] ?? '');
+if (!validateCSRFToken($csrfToken)) {
+    http_response_code(403);
+    die(json_encode(['error' => 'Invalid security token. Please refresh the page and try again.']));
+}
+
 $imageFile = basename((string)($_POST['image'] ?? ''));
 $imagePath = "uploads/" . $imageFile;
 $jsonPath  = "uploads/" . pathinfo($imageFile, PATHINFO_FILENAME) . ".json";

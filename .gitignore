@@ -1,5 +1,6 @@
 .env.local.php
 uploads/
+uploads/thumbs/
 .antigravity/
 deploy_fix.sh
 deploy_ui_fix.sh
