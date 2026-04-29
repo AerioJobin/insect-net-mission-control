@@ -34,7 +34,7 @@ $imageData = base64_encode(file_get_contents($imagePath));
 $payload = [
     "contents" => [[
         "parts" => [
-            ["text" => "Identify the insects stuck on this trap. IGNORE the central wooden block. Focus on identifying if these are fruit flies (Bactrocera). Return ONLY a JSON object: { \"species\": \"...\", \"common_name\": \"...\", \"confidence\": 0.95, \"description\": \"...\" }"],
+            ["text" => "Scan the entire trap. Count the total number of insects and classify them individually into distinct groups. IGNORE the central wooden block. Focus on identifying fruit flies (Bactrocera) vs others. Return ONLY a JSON object: { \"species\": \"<dominant_species>\", \"common_name\": \"<dominant_common_name>\", \"confidence\": 0.95, \"description\": \"<description>\", \"total_count\": <integer>, \"breakdown\": [{ \"species\": \"...\", \"common_name\": \"...\", \"count\": <integer> }] }"],
             ["inlineData" => ["mimeType" => "image/jpeg", "data" => $imageData]]
         ]
     ]]
@@ -71,7 +71,7 @@ if ($httpCode !== 200) {
     if ($httpCode === 503 || $httpCode === 429) {
         // Mock fallback — mark it so we never cache this
         $isMock = true;
-        $aiText = '{"species": "Bactrocera (genus) [MOCK: API UNAVAILABLE]", "common_name": "Fruit Fly", "confidence": 0.85, "description": "Mock description generated due to Google API high demand (503/429 error)."}';
+        $aiText = '{"species": "Bactrocera (genus) [MOCK: API UNAVAILABLE]", "common_name": "Fruit Fly", "confidence": 0.85, "description": "Mock description generated due to Google API high demand (503/429 error).", "total_count": 3, "breakdown": [{"species": "Bactrocera (genus)", "common_name": "Fruit Fly", "count": 3}]}';
         http_response_code(200);
     } else {
         http_response_code($httpCode ?: 500);

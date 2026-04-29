@@ -311,6 +311,65 @@ $backUrl = 'index.php?view=dashboard&device=' . urlencode($device);
             margin-bottom: 24px;
         }
 
+        /* Total count & breakdown */
+        .insect-count-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(138, 34, 69, 0.08);
+            border: 1px solid rgba(138, 34, 69, 0.2);
+            color: var(--primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95em;
+            margin-bottom: 20px;
+        }
+
+        [data-theme="dark"] .insect-count-badge {
+            background: rgba(226, 114, 151, 0.15);
+            border-color: rgba(226, 114, 151, 0.3);
+            color: #e27297;
+        }
+
+        .breakdown-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface2);
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 0.88em;
+        }
+
+        .breakdown-item-name {
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .breakdown-item-common {
+            color: var(--text-dim);
+            font-size: 0.9em;
+            margin-left: 6px;
+        }
+
+        .breakdown-item-count {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2px 10px;
+            border-radius: 99px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
         /* Confidence bar */
         .conf-row {
             margin-bottom: 20px;
@@ -934,6 +993,29 @@ $backUrl = 'index.php?view=dashboard&device=' . urlencode($device);
                         </div>
                         <div class="species-name"><?= htmlspecialchars($cached['species'] ?? 'Unknown') ?></div>
                         <div class="common-name"><?= htmlspecialchars($cached['common_name'] ?? '') ?></div>
+                        
+                        <?php if (isset($cached['total_count'])): ?>
+                            <div class="insect-count-badge">
+                                🦟 Total Insects Detected: <?= (int)$cached['total_count'] ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($cached['breakdown']) && is_array($cached['breakdown'])): ?>
+                            <div class="breakdown-list">
+                                <?php foreach ($cached['breakdown'] as $item): ?>
+                                    <div class="breakdown-item">
+                                        <div>
+                                            <span class="breakdown-item-name"><?= htmlspecialchars($item['species'] ?? 'Unknown') ?></span>
+                                            <?php if (!empty($item['common_name'])): ?>
+                                                <span class="breakdown-item-common">(<?= htmlspecialchars($item['common_name']) ?>)</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <div class="breakdown-item-count"><?= (int)($item['count'] ?? 0) ?></div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
                         <?php
                         $conf = $cached['confidence'] ?? null;
                         $confPct = $conf ? (int) round((float) $conf * 100) : null;
@@ -1091,6 +1173,28 @@ $backUrl = 'index.php?view=dashboard&device=' . urlencode($device);
                 <div class="card-title">AI Identification <span class="status-tag ${badgeClass}">${badgeLabel}</span></div>
                 <div class="species-name">${escapeHtml(species)}</div>
                 <div class="common-name">${escapeHtml(common)}</div>`;
+
+            if (data.total_count !== undefined && data.total_count !== null) {
+                html += `
+                <div class="insect-count-badge">
+                    🦟 Total Insects Detected: ${parseInt(data.total_count)}
+                </div>`;
+            }
+
+            if (data.breakdown && Array.isArray(data.breakdown) && data.breakdown.length > 0) {
+                html += `<div class="breakdown-list">`;
+                data.breakdown.forEach(item => {
+                    html += `
+                    <div class="breakdown-item">
+                        <div>
+                            <span class="breakdown-item-name">${escapeHtml(item.species || 'Unknown')}</span>
+                            ${item.common_name ? `<span class="breakdown-item-common">(${escapeHtml(item.common_name)})</span>` : ''}
+                        </div>
+                        <div class="breakdown-item-count">${parseInt(item.count || 0)}</div>
+                    </div>`;
+                });
+                html += `</div>`;
+            }
 
             if (confPct !== null) {
                 const pill = confChangePill(confChange);

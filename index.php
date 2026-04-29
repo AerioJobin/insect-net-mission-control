@@ -2428,7 +2428,7 @@ function deviceStatusLabel($ts)
             <?php
             // ── Species Summary ──────────────────────────────────────────
             $speciesSummary = [];
-            $csvRows = [['Image', 'Species', 'Common Name', 'Confidence (%)', 'Date']];
+            $csvRows = [['Image', 'Species', 'Common Name', 'Confidence (%)', 'Date', 'Insect Count']];
             foreach ($deviceFiles as $f) {
                 $base = basename($f);
                 $jsonPath = $upload_dir . pathinfo($base, PATHINFO_FILENAME) . '.json';
@@ -2437,18 +2437,48 @@ function deviceStatusLabel($ts)
                 $j = json_decode(file_get_contents($jsonPath), true);
                 if (!$j || empty($j['species']))
                     continue;
-                $sp = $j['species'] ?? 'Unknown';
-                $cn = $j['common_name'] ?? '';
-                $conf = isset($j['confidence']) ? round(floatval($j['confidence']) * 100) : null;
+                
                 $date = date('M j, Y', filemtime($f));
-                if (!isset($speciesSummary[$sp])) {
-                    $speciesSummary[$sp] = ['count' => 0, 'common' => $cn, 'maxConf' => 0, 'latest' => ''];
+                $overallConf = isset($j['confidence']) ? round(floatval($j['confidence']) * 100) : null;
+                $seenSpeciesInImage = [];
+
+                if (!empty($j['breakdown']) && is_array($j['breakdown'])) {
+                    foreach ($j['breakdown'] as $item) {
+                        $sp = $item['species'] ?? 'Unknown';
+                        $cn = $item['common_name'] ?? '';
+                        $count = isset($item['count']) ? (int)$item['count'] : 1;
+
+                        if (!isset($speciesSummary[$sp])) {
+                            $speciesSummary[$sp] = ['imgCount' => 0, 'insectCount' => 0, 'common' => $cn, 'maxConf' => 0, 'latest' => ''];
+                        }
+                        
+                        $speciesSummary[$sp]['insectCount'] += $count;
+                        if (!isset($seenSpeciesInImage[$sp])) {
+                            $speciesSummary[$sp]['imgCount']++;
+                            $seenSpeciesInImage[$sp] = true;
+                        }
+                        
+                        if ($overallConf !== null && $overallConf > $speciesSummary[$sp]['maxConf'])
+                            $speciesSummary[$sp]['maxConf'] = $overallConf;
+                        $speciesSummary[$sp]['latest'] = $date;
+                        $csvRows[] = [$base, $sp, $cn, $overallConf ?? '', $date, $count];
+                    }
+                } else {
+                    $sp = $j['species'] ?? 'Unknown';
+                    $cn = $j['common_name'] ?? '';
+                    $count = isset($j['total_count']) ? (int)$j['total_count'] : 1;
+
+                    if (!isset($speciesSummary[$sp])) {
+                        $speciesSummary[$sp] = ['imgCount' => 0, 'insectCount' => 0, 'common' => $cn, 'maxConf' => 0, 'latest' => ''];
+                    }
+                    $speciesSummary[$sp]['insectCount'] += $count;
+                    $speciesSummary[$sp]['imgCount']++;
+                    
+                    if ($overallConf !== null && $overallConf > $speciesSummary[$sp]['maxConf'])
+                        $speciesSummary[$sp]['maxConf'] = $overallConf;
+                    $speciesSummary[$sp]['latest'] = $date;
+                    $csvRows[] = [$base, $sp, $cn, $overallConf ?? '', $date, $count];
                 }
-                $speciesSummary[$sp]['count']++;
-                if ($conf !== null && $conf > $speciesSummary[$sp]['maxConf'])
-                    $speciesSummary[$sp]['maxConf'] = $conf;
-                $speciesSummary[$sp]['latest'] = $date;
-                $csvRows[] = [$base, $sp, $cn, $conf ?? '', $date];
             }
             arsort($speciesSummary);
             ?>
@@ -2468,7 +2498,8 @@ function deviceStatusLabel($ts)
                                 <tr>
                                     <th>Species</th>
                                     <th>Common Name</th>
-                                    <th>Count</th>
+                                    <th>Total Insects</th>
+                                    <th>Images Found In</th>
                                     <th>Best Confidence</th>
                                     <th>Latest</th>
                                 </tr>
@@ -2478,7 +2509,8 @@ function deviceStatusLabel($ts)
                                     <tr>
                                         <td><strong><?= htmlspecialchars($sp) ?></strong></td>
                                         <td class="dim"><?= htmlspecialchars($info['common']) ?: '<em>—</em>' ?></td>
-                                        <td><span class="sp-count"><?= $info['count'] ?></span></td>
+                                        <td><span class="sp-count" style="background:var(--primary);color:#fff;padding:2px 10px;border-radius:99px;"><?= $info['insectCount'] ?></span></td>
+                                        <td><?= $info['imgCount'] ?></td>
                                         <td>
                                             <?php if ($info['maxConf']): ?>
                                                 <div class="conf-bar-wrap">
